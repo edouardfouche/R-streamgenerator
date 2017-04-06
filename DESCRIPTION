@@ -1,0 +1,19 @@
+Package: streamgenerator
+Type: Package
+Title: Statistical multidimensional synthetic stream generator
+Version: 0.0.0.1
+Date: 2017-04-05
+Authors@R: person("Edouard", "Fouche", email = "edouard.fouche@kit.edu",
+                  role=c("aut", "cre"))
+Maintainer: Edouard Fouche <edouard.fouche@kit.edu>
+Depends: R (>= 2.15.1)
+Description: This package provide methods to generate synthetic multidimensional data streams with desired variability in its correlation structure and proportion of outliers. The data produced can be used as benchmark data for research work about data streams and outlier detection. 
+License: BSD_3_clause + file LICENSE
+LazyLoad: Yes
+LazyData: TRUE
+Imports: 
+	assertthat
+RoxygenNote: 6.0.1
+NeedsCompilation: no
+Repository: CRAN
+Suggests: testthat
