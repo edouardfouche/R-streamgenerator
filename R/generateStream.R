@@ -82,7 +82,7 @@ generate.static.stream <- function(n=1000, prop=0.01, stream.config=NULL) {
 #' The data is generated uniformly, except in certain subspaces where the data is concentrated on the axes, 
 #' in the L-like shape. This should create spaces with high dependency and space to observe hidden outliers. 
 #' Note that the proportion of outlier \code{prop} does not relate directly to the percentage of outliers
-#' in the output stream. Since it corresponds to the probability of a point, being ALREADY in the hidden space
+#' in the output stream. Since it corresponds to the probability of a point, being already in the hidden space
 #' to stay where it is, the overall proportion of outliers depends on the hidden space volume, which depends
 #' on the number of subspaces and their margins.
 #'
