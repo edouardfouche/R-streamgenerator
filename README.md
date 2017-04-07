@@ -13,11 +13,11 @@ This R package provide functions to generate multidimensional data streams where
 
 Note that the proportion of outlier in the output stream does not relate directly to *prop*. Since *prop* corresponds to the probability of a point, being already in the hidden space, to stay where it is, the overall proportion of outliers depends on the hidden space volume, which depends on the number of subspaces and their margins.
 
-**TL;DR** the data is generated uniformly, except in some subspaces where the data is concentrated on the axes at a certain degree, in a L-like shape. The type of dependency leave space to place *hidden* outliers. The dependencies are susceptible to change in amplitude and subspaces through time. The following picture shows a snapshot of 100 points of  attributes n°7 and n°8 in data stream generated this way between at different point in time: 
+**TL;DR** the data is generated uniformly, except in some subspaces where the data is concentrated on the axes at a certain degree, in a L-like shape. The type of dependency leave space to place *hidden* outliers. The dependencies are susceptible to change in amplitude and subspaces through time. The following picture shows a snapshot of 100 points of  attributes n°7 and n°8 in data stream generated this way at different points in time: 
 
 ![streamgenerator_1](/img/streamgenerator_1.png)
 
-As you can see, the relationship between attribute 7 and 8 has evolved through time. Also, there is an outlier in picture 5 (in red). Obvious, by looking at the whole time window, this point would probably not have been detected as such. 
+As you can see, the relationship between attribute n°7 and n°8 has evolved through time. Also, there is an outlier in picture 5 (in red). Obvious, by looking at the whole time window, this point would probably not have been detected as such. 
 
 ## Install
 
@@ -64,6 +64,10 @@ stream <- generate.dynamic.stream(n=100, prop=0.05, stream.config=stream.config)
 * Output stream
 
 ```R
+# this will create 3 files "example_data.txt", "example_labels.txt" and "example_description.txt". 
+# "example_data.txt" contains the stream
+# "example_labels.txt" contains the labels (i.e. if each point is an outlier or not and in which subspace)
+# "example_description.txt" contains a human-readable description of the stream 
 output.stream(stream, "example")
 ```
 
