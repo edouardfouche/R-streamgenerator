@@ -1,11 +1,11 @@
 #' Generate a raw with statistic properties
 #'
-#' @params dim Number of dimension of the vector generate.
-#' @params subspaces List of subspaces that contain a hidden space (i.e they show some dependency).
-#' @params margins List of margins that correspond to each subspace.
-#' @params prop Probability of a point belonging to the hidden space of a subspace to become an outlier.
+#' @param dim Number of dimension of the vector generate.
+#' @param subspaces List of subspaces that contain a hidden space (i.e they show some dependency).
+#' @param margins List of margins that correspond to each subspace.
+#' @param prop Probability of a point belonging to the hidden space of a subspace to become an outlier.
 #'
-#' @returns A list with 2 elements where \code{data} contains the generated vector and \code{labels} the corresponding label.
+#' @return A list with 2 elements where \code{data} contains the generated vector and \code{labels} the corresponding label.
 #
 #' @details
 #' The row is at first drawn from the uniform distribution between 0 and 1 over each dimension
@@ -20,6 +20,15 @@
 #' But it still has the same probability to become an outlier in another space. This appends by chance (pigeonhole principle)
 #'
 #' If the point if not an outlier, it will have \code{0} as label, otherwise, it has a string representing the different subspaces
+#'
+#' @author Edouard Fouché, \email{edouard.fouche@kit.edu}
+#'
+#' @seealso
+#' * \code{\link{generate.dynamic.stream}} : generate a dynamic stream
+#' * \code{\link{generate.static.stream}}  : generate a static stream 
+#'
+#' @md
+#' @importFrom stats runif
 generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.1,0.1), prop=0.01) {
   # no sanity check, assumed to be done already 
   r <- runif(dim)
@@ -73,13 +82,16 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
 #' Helper function that generate multiple rows with the same characteristics
 #' Useful to generate a static stream
 #'
-#' @params n Number of rows to generate.
-#' @params dim Number of dimension of the vector generate.
-#' @params subspaces List of subspaces that contain a hidden space (i.e they show some dependency).
-#' @params margins List of margins that correspond to each subspace.
-#' @params prop Probability of a point belonging to the hidden space of a subspace to become an outlier.
+#' @param n Number of rows to generate.
+#' @param dim Number of dimension of the vector generate.
+#' @param subspaces List of subspaces that contain a hidden space (i.e they show some dependency).
+#' @param margins List of margins that correspond to each subspace.
+#' @param prop Probability of a point belonging to the hidden space of a subspace to become an outlier.
 #'
-#' @returns A list with 2 elements where \code{data} is a data.frame object containing the \code{n} vectors and \code{labels} containing \code{n} corresponding labels. 
+#' @author Edouard Fouché, \email{edouard.fouche@kit.edu}
+#'
+#' @md
+#' @return A list with 2 elements where \code{data} is a data.frame object containing the \code{n} vectors and \code{labels} containing \code{n} corresponding labels. 
 generate.multiple.rows <- function(n, dim, subspaces, margins, prop) {
   # no sanity check, assumed to be done already 
   data <- data.frame()

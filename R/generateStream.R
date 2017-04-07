@@ -26,14 +26,21 @@
 #' stream <- generate.static.stream()
 #' # Generate a stream with custom configuration
 #' stream.config <- generate.stream.config(dim=50, nsteps=1) # nsteps should be = 1
-#' stream <- generate.static.stream(n=1000, prop=0.05, stream.config=stream.config, verbose=TRUE)
+#' stream <- generate.static.stream(n=1000, prop=0.05, stream.config=stream.config)
 #' # Output stream results (to uncomment)
 #' # output.stream(stream, "example")
 #'
+#' @author Edouard Fouché, \email{edouard.fouche@kit.edu}
+#'
+#' @seealso
+#' * \code{\link{generate.stream.config}}  : generate a stream.config file for a dynamic or static stream 
+#'
+#' @md
 #' @export
 generate.static.stream <- function(n=1000, prop=0.01, stream.config=NULL) {
   # Generate n point with dim dimensions where the list of subspaces are generated wall-like with the size of the wall taken from margins list
   # In the hidden space, a proportion prop of the points is taken as outliers 
+  # Suggestion: add a verbose mode 
   sanitycheck.generate(n=n, prop=prop, stream.config=stream.config)
 
   if(is.null(stream.config)) {
@@ -62,6 +69,7 @@ generate.static.stream <- function(n=1000, prop=0.01, stream.config=NULL) {
 #' @param n A vector containing \code{x} values, where the values corresponds to the number of points for each step and \code{x} to the number of steps.
 #' @param prop Proportion of outliers in the hidden space.
 #' @param stream.config A stream configuration object. Should have been generated with \code{nsteps > 1}.
+#' @param verbose If TRUE, then the state of the stream will be printed as output for every 100 points.
 #'
 #' @return A an object of class \code{stream}, which is a \code{List} of 5 elements.
 #' - \code{data} contains the stream generated
@@ -83,10 +91,16 @@ generate.static.stream <- function(n=1000, prop=0.01, stream.config=NULL) {
 #' stream <- generate.dynamic.stream()
 #' # Generate a stream with custom configuration
 #' stream.config <- generate.stream.config(dim=50, nsteps=10, volatility=0.5)
-#' stream <- generate.dynamic.stream(n=1000, prop=0.05, stream.config=stream.config)
+#' stream <- generate.dynamic.stream(n=100, prop=0.05, stream.config=stream.config)
 #' # Output stream results (to uncomment)
 #' # output.stream(stream, "example")
 #'
+#' @author Edouard Fouché, \email{edouard.fouche@kit.edu}
+#'
+#' @seealso
+#' * \code{\link{generate.stream.config}}  : generate a stream.config file for a dynamic or static stream 
+#'
+#' @md
 #' @export
 generate.dynamic.stream <- function(n=100, prop=0.01, stream.config=NULL, verbose=FALSE) {
   # To check -> what is the correlation matrix ? 

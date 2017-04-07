@@ -10,10 +10,16 @@
 #' @return Nothing
 #'
 #' @examples
+#' stream <- generate.dynamic.stream()
+#' output.stream(stream, "example")
+#'
+#' @author Edouard Fouché, \email{edouard.fouche@kit.edu}
+#'
 #' @export
+#' @importFrom utils write.csv
 output.stream <- function(stream, prefix) {
 	stopifnot(class(stream) == "stream")
-	options(max.print=1000000)
+	options(streamgenerator.max.print=1000000)
 	write.csv(stream$data, paste(prefix, "data.txt", sep="_"), row.names=FALSE)
 	write(stream$labels, paste(prefix, "labels.txt", sep="_"))
 
@@ -97,5 +103,4 @@ output.stream <- function(stream, prefix) {
 	sink()
 	close(conn)
 	print("Output completed !")
-	options(max.print=100) # reset to normal value 
 }

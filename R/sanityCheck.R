@@ -1,4 +1,4 @@
-#' A bunch of sanity checks for the functions generating data streams
+# A bunch of sanity checks for the functions generating data streams
 sanitycheck.generate <- function(n=100, prop=0.01, stream.config=NULL, verbose=FALSE) {
   stopifnot(is.numeric(n))
   stopifnot(is.numeric(prop))
@@ -53,7 +53,7 @@ sanitycheck.generate <- function(n=100, prop=0.01, stream.config=NULL, verbose=F
 
 }
 
-#' A bunch of sanity checks for the functions generating configurations
+# A bunch of sanity checks for the functions generating configurations
 sanitycheck.config <- function(dim=20, mindim=2, maxdim=4, subspaces=NULL, nsteps=10, cycle=0, 
                                volatility=0.1, values=c(0.1,0.2,0.3,0.4,0.5,0.8,0.7,0.9)) {
   stopifnot(is.numeric(dim))
