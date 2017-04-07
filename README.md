@@ -15,7 +15,7 @@ Note that the proportion of outlier \code{prop} does not relate directly to the 
 
 TL;DR: the data is generated uniformly, except in certain subspaces where the data is concentrated on the axes, in a L-like shape. The should create spaces with various dependency and space to place hidden outliers. The dependencies are susceptible to change in amplitude and subspaces through time. The following picture shows a snapshot of 100 points of  attributes n°7 and n°8 in data stream generated this way between at different point in time: 
 
-[[https://github.com/edouardfouche/R-streamgenerator/img/streamgenerator_1.png|alt=illustration]]
+[[https://github.com/edouardfouche/R-streamgenerator/blob/master/img/streamgenerator_1.png|alt=illustration]]
 
 ## Install
 
