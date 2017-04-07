@@ -8,10 +8,16 @@ A statistical muldi-dimensional stream generator for benchmarking stream mining 
 ```R
 install.packages("devtools")
 ```
-3. Install the package:
+3a. Install the package:
 ```R
 library(devtools)
 devtools::install("~/path/to/cloned/R-streamgenerator")
+```
+
+3b. Or load the package in the environment (development mode):
+```R
+library(devtools)
+load_all("~/path/to/cloned/R-streamgenerator")
 ```
 
 ## Get started
