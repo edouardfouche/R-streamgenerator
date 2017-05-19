@@ -4,7 +4,7 @@
 #'
 #' @param n A vector containing \code{x} values, where the values corresponds to the number of points for each step and \code{x} to the number of steps. 
 #' @param prop Proportion of outliers in the hidden space.
-#' @param stream.config A stream configuration object. Should have been generated with \code{nsteps = 1}.
+#' @param stream.config A stream configuration object. Should have been generated with \code{nstep = 1}.
 #'
 #' @return A an object of class stream, which is a List of 5 elements.
 #' - \code{data} contains the stream generated
@@ -25,7 +25,7 @@
 #' # Generate a stream with default parameters 
 #' stream <- generate.static.stream()
 #' # Generate a stream with custom configuration
-#' stream.config <- generate.stream.config(dim=50, nsteps=1) # nsteps should be = 1
+#' stream.config <- generate.stream.config(dim=50, nstep=1) # nstep should be = 1
 #' stream <- generate.static.stream(n=1000, prop=0.05, stream.config=stream.config)
 #' # Output stream results (to uncomment)
 #' # output.stream(stream, "example")
@@ -44,10 +44,10 @@ generate.static.stream <- function(n=1000, prop=0.01, stream.config=NULL) {
   sanitycheck.generate(n=n, prop=prop, stream.config=stream.config)
 
   if(is.null(stream.config)) {
-    stream.config <- generate.stream.config(nsteps=1)
+    stream.config <- generate.stream.config(nstep=1)
   } else {
-    if(stream.config$nsteps != 1) {
-      stop("The stream.config file in not compatible with static streams: nsteps should be = 1")
+    if(stream.config$nstep != 1) {
+      stop("The stream.config file in not compatible with static streams: nstep should be = 1")
     }
   }
   dim <- stream.config$dim
@@ -68,7 +68,7 @@ generate.static.stream <- function(n=1000, prop=0.01, stream.config=NULL) {
 #'
 #' @param n A vector containing \code{x} values, where the values corresponds to the number of points for each step and \code{x} to the number of steps.
 #' @param prop Proportion of outliers in the hidden space.
-#' @param stream.config A stream configuration object. Should have been generated with \code{nsteps > 1}.
+#' @param stream.config A stream configuration object. Should have been generated with \code{nstep > 1}.
 #' @param verbose If TRUE, then the state of the stream will be printed as output for every 100 points.
 #'
 #' @return A an object of class \code{stream}, which is a \code{List} of 5 elements.
@@ -90,7 +90,7 @@ generate.static.stream <- function(n=1000, prop=0.01, stream.config=NULL) {
 #' # Generate a stream with default parameters 
 #' stream <- generate.dynamic.stream()
 #' # Generate a stream with custom configuration
-#' stream.config <- generate.stream.config(dim=50, nsteps=10, volatility=0.5)
+#' stream.config <- generate.stream.config(dim=50, nstep=10, volatility=0.5)
 #' stream <- generate.dynamic.stream(n=100, prop=0.05, stream.config=stream.config)
 #' # Output stream results (to uncomment)
 #' # output.stream(stream, "example")
@@ -109,14 +109,14 @@ generate.dynamic.stream <- function(n=100, prop=0.01, stream.config=NULL, verbos
   if(is.null(stream.config)) {
     stream.config <- generate.stream.config()
   } else {
-    if(stream.config$nsteps <= 1) {
-      stop("The stream.config file in not compatible with dynamic streams: nsteps should be > 1")
+    if(stream.config$nstep <= 1) {
+      stop("The stream.config file in not compatible with dynamic streams: nstep should be > 1")
     }
   }
 
   if(length(n) == 1) {
-    n <- rep(n,stream.config$nsteps)
-  } # else assume that n has the good size, has checked by the sanity check 
+    n <- rep(n,stream.config$nstep)
+  } # else assume that n has the good size, was checked by the sanity check 
 
   dim <- stream.config$dim
   subspaceslist <- stream.config$subspaceslist

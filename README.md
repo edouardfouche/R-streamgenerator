@@ -3,13 +3,15 @@ A statistical muldi-dimensional stream generator for benchmarking stream mining 
 
 This R package provides functions to generate multidimensional data streams where the correlation structure can change through time. 
 
+More information about the motivation of this project is available in this [article][article]
+
 ## How it works
 
 - We define (or generate randomly) a list of subspaces *subspaces* from a number of dimensions *dim*, where each subspace is composed of at least *mindim* dimensions and at most *maxdim* dimensions. The subspaces shall overlap, but no subspace shall contain and or be contained in another. 
 - We determine *margins*, a list of numbers between 0 and 1 having the same size as *subspaces*. The subspace at position *x* is assigned to the margin at position *x*. 
 - Each data point is represented by a vector of length *dim*, whose values are drown from the uniform distribution between 0 and 1, at the exception of the subspaces specified in *subspaces*. For each subspace, an hypercube of side *margin*-1 is defined, such that all points falling into this hypercube are uniformly moved away to the rest of the space. 
 - Each data point falling into the hypercube has a probability *prop* to stay in it, which makes this point a *non-trivial* outlier. We make sure that the point is not too close to the border of the hypercube by a tolerance of about 10% of *margin*-1. 
-- The list *subspaces* and *margins* are changed over a number *nsteps* of time steps by a proportion *volatility*. So if *volatility* is equal to 0.5, half of the subspace/margin pairs will be changed at each step. Each step is composed of a number of *n* points, which can also vary for each step. Between each time step, the state of the generator change uniformly from the current to the next *subspaces*/*margins* list. 
+- The list *subspaces* and *margins* are changed over a number *nstep* of time steps by a proportion *volatility*. So if *volatility* is equal to 0.5, half of the subspace/margin pairs will be changed at each step. Each step is composed of a number of *n* points, which can also vary for each step. Between each time step, the state of the generator change uniformly from the current to the next *subspaces*/*margins* list. 
 
 Note that the proportion of outlier in the output stream does not relate directly to *prop*. Since *prop* corresponds to the probability of a point in the hidden space to stay where it is, the overall proportion of outliers depends on the hidden space volume, which depends on the number of subspaces and their margins.
 
@@ -50,7 +52,7 @@ Note that the package is not published to CRAN (yet).
 ```R
 stream <- generate.static.stream() # default parameters
 # Generate a stream with custom configuration
-stream.config <- generate.stream.config(dim=50, nsteps=1) # nsteps should be = 1
+stream.config <- generate.stream.config(dim=50, nstep=1) # nstep should be = 1
 stream <- generate.static.stream(n=1000, prop=0.05, stream.config=stream.config)
 ```
 
@@ -59,7 +61,7 @@ stream <- generate.static.stream(n=1000, prop=0.05, stream.config=stream.config)
 ```R
 stream <- generate.dynamic.stream() # default parameters
 # Generate a stream with custom configuration
-stream.config <- generate.stream.config(dim=50, nsteps=10, volatility=0.5)
+stream.config <- generate.stream.config(dim=50, nstep=10, volatility=0.5)
 stream <- generate.dynamic.stream(n=100, prop=0.05, stream.config=stream.config)
 ```
 
@@ -78,3 +80,6 @@ output.stream(stream, "example")
 * Write more tests
 * Write about the generation approach
 * Use it 
+
+
+[article]: https://edouardfouche.com/Data-Stream-Generation-with-Concept-Drift/
