@@ -79,6 +79,8 @@ output.stream(stream, "example")
 
 * Write more tests
 * Write about the generation approach
+* Develop other dependencies and transitions (drifts)
+* Develop for discrete data too 
 * Use it 
 
 

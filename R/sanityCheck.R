@@ -78,18 +78,18 @@ sanitycheck.config <- function(dim=20, mindim=2, maxdim=4, subspaces=NULL, nstep
   if(cycle < 0 | cycle > nstep/2) {
     stop("The number of elements to create a cycle 'cycle' should be between 0 (no cycle) and half of the number of steps 'nstep'")
   }
-  if(dim < 10) {
-    stop("The number of dimensions 'dim' should be at least >= 10")
-  }
+  #if(dim < 10) {
+  #  stop("The number of dimensions 'dim' should be at least >= 10")
+  #}
   if(mindim < 2) {
     stop("The minimum number of dimensions 'mindim' for a subspace shall not be lower than 2")
   }
   if(maxdim < mindim) {
     stop("The minimum number of dimensions 'mindim' for a subspace shall not be bigger than the maximum number of dimensions")
   }
-  if(maxdim > dim/2) {
-    stop("A maximum number of dimensions bigger than half of the total number of dimensions is not allowed")
-  }
+  #if(maxdim > dim/2) {
+  #  stop("A maximum number of dimensions bigger than half of the total number of dimensions is not allowed")
+  #}
   if(volatility <= 0 | volatility > 1) {
     stop("The relative proportion at with the system change at each step should be > 0 and <= 1. Note that for a system where volatility = 0, we would use the method 'generate.static.data'")
   }

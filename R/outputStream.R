@@ -50,14 +50,18 @@ output.stream <- function(stream, prefix) {
 	indexes <- indexes[stream$labels != "0"]
 
 	cat(paste("Number of points:\t", length(stream$labels)))
-	cat(paste("\nNumber of outliers:\t", length(hiddensubspaceoutliers)))
+	cat(paste("\nNumber of outliers:\t", length(hiddensubspaceoutliers)),"\n\n")
 
 	contingency <- as.data.frame(table(stream$labels[stream$labels != "0"]))
-	attributes(contingency)$names <- c("subspaces", "count")
-
-	cat("\n\n- Contingency Table\n\n")
-
-	print(contingency)
+	
+	if(length(contingency) > 1) {
+	  attributes(contingency)$names <- c("subspaces", "count")
+	  
+	  cat("- Contingency Table\n\n")
+	  
+	  print(contingency)
+	}
+	
 
 	cat("\n- Patterns\n\n")
 
@@ -102,5 +106,5 @@ output.stream <- function(stream, prefix) {
 	}
 	sink()
 	close(conn)
-	print("Output completed !")
+	#print("Output completed !") # comment it because it gets somehow printed in the files (?)
 }
