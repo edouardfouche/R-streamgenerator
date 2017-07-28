@@ -40,7 +40,9 @@ output.stream <- function(stream, prefix) {
 			     paste("Maximum number of dim:\t", stream$stream.config$maxdim),
 			     paste("Possible margin values:\t", paste(stream$stream.config$values, collapse = ' ')),
 			     paste("Cycle length:\t\t", stream$stream.config$cycle),
-			     paste("Volatility:\t\t", stream$stream.config$volatility), sep="\n"))
+			     paste("Volatility:\t\t", stream$stream.config$volatility),
+			     paste("Dependency:\t\t", stream$stream.config$dependency), 
+			     paste("Discrete:\t\t", stream$stream.config$discretize), sep="\n"))
 
 	cat(paste("\n\nData", 
 			  "----\n\n", sep="\n"))
@@ -77,7 +79,7 @@ output.stream <- function(stream, prefix) {
 	cat("- Notes\n\n")
 	cat("Rows:\t\tsubspaces (<start>:<end>)\n")
 	cat("Columns:\t<step_number>.<step_size>\n")
-	cat("Values:\t\t1='no dependence', 0.1='high dependence'\n\n")
+	cat("Values:\t\t 0 ='no dependence', 0.9='high dependence'\n\n")
 
 	cat("- Description\n\n")
 

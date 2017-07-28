@@ -62,12 +62,12 @@ generate.subspaces <- function(dim=20, mindim=2, maxdim=4) {
 }
 
 #' Resample compatible subspaces to replace a set of subspaces.
-#' The new subspaces should not include or be included in another subspace from the set. 
+#' The new subspaces should not include or be included in another subspace from the original set. 
 #' @param dim Total number of dimensions from which to generate the subspaces.
 #' @param subspaces A list of generated subspaces.
 #' @param indexes Positions of the subspaces to replace.
 #'
-#' @return The original set of subspaces, where the places at \code{indexes} where modified
+#' @return The original set of subspaces, where the places at \code{indexes} were modified
 #'
 #' @examples 
 #' subspaces <- list(c(1,2,3), c(3,4,5), c(7,8), c(11,12), c(15,16))
@@ -97,7 +97,7 @@ replace.subspaces <- function(dim, subspaces, indexes) {
   subspaces
 }
 
-#' Sample valid margins for a list of subspaces (not used currently)
+#' Sample valid margins for a list of subspaces (not used anymore)
 #' @param subspaces A list of generated subspaces.
 #' @param values A vector of valid values for subspace margins.
 #'
@@ -155,7 +155,7 @@ generate.marginslist <- function(subspaces, nstep=10, volatility=0.1, values=c(0
 #' @param cycle If > 0 the dynamic contains a cycle of this size. 
 #'
 #' @return A list with two elements:
-#  - \code{marginlist} A list containing lists of margins for each steps
+#' - \code{marginlist} A list containing lists of margins for each steps
 #' - \code{subspacelist} A list containing lists of subspaces for each steps
 #' 
 #' @details
@@ -204,6 +204,8 @@ generate.dynamic <- function(dim, subspaces, nstep=10, volatility=0.1, values=c(
 #' @param maxdim Maximum number of dimensions for each subspaces. Should be >= mindim and <= dim/2.
 #' @param values A vector of valid values for subspace margins.
 #' @param nstep Number of steps for which we generate new subspaces and margin values.
+#' @param dependency Type of dependencies available in the stream, currently either "Wall" or "Square" or "Donut" (in the future: "Mixed")
+#' @param decretize whether the output should be discrete or not. 0 means it is real. Any other number of discrete possible values. (10 is the minumum)
 #' @param cycle Number of iterations to use to create a cyclic streams. If 0, then the stream has no cycle.
 #' @param volatility Proportion of subspaces to change at any step. Should be > 0 and <= 1. 1 means that all subspaces and margins at changed a each step
 #'
@@ -220,7 +222,7 @@ generate.dynamic <- function(dim, subspaces, nstep=10, volatility=0.1, values=c(
 #'
 #' @md
 #' @export
-generate.stream.config <- function(dim=20, mindim=2, maxdim=4, values=c(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9), nstep=10, cycle=0, volatility=0.1) {
+generate.stream.config <- function(dim=20, mindim=2, maxdim=4, values=c(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9), nstep=10, dependency="Wall", discretize=0, cycle=0, volatility=0.1) {
   sanitycheck.config(dim=dim, mindim=mindim, maxdim=maxdim, values=values, nstep=nstep, cycle=cycle, volatility=volatility)
 
   res <- list("dim"=dim, "mindim"=mindim, "maxdim"=maxdim, "values"=values, "nstep"=nstep, "cycle"=cycle, "volatility"=volatility)
@@ -235,6 +237,10 @@ generate.stream.config <- function(dim=20, mindim=2, maxdim=4, values=c(0.1,0.2,
     margins <- generate.margins(subspaces, values=values)
     res <- c(res, list("subspaces"=subspaces, "margins"=margins))
   }
+  
+  res <-  c(res, list("dependency"=dependency)) # We don't support mixed dependencies yet, so we don't need a list 
+  res <-  c(res, list("discretize"=discretize)) # We don't support mixed discretization yet, so we don't need a list 
+  
   attr(res, "class") <- "stream.config"
   return(res)
 }

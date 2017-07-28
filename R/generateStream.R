@@ -6,7 +6,7 @@
 #' @param prop Proportion of outliers in the hidden space.
 #' @param stream.config A stream configuration object. Should have been generated with \code{nstep = 1}.
 #'
-#' @return A an object of class stream, which is a List of 5 elements.
+#' @return An object of class stream, which is a List of 5 elements.
 #' - \code{data} contains the stream generated
 #' - \code{labels} contains the description of each point (\code{0} if the point is not an outlier, or the subspace in which it is outlying as a string)
 #' - \code{n} the number of points at each step
@@ -14,12 +14,13 @@
 #' - \code{stream.config} the associated stream configuration object (which is valid only for static streams)
 #'
 #' @details
-#' The data is generated uniformly, except in certain subspaces where the data is concentrated on the axes, 
-#' in the L-like shape. This should create spaces with high dependency and space to observe hidden outliers. 
+#' The data is generated uniformly, except in certain subspaces where the data is concentrated in particular 
+#' dependencies (i.e. in the "Wall" dependency, data concentrates on the axes, in a L-like shape). 
+#' This should create spaces with high dependency and space to observe hidden outliers. 
 #' Note that the proportion of outlier \code{prop} does not relate directly to the percentage of outliers
 #' in the output stream. Since it corresponds to the probability of a point, being ALREADY in the hidden space
 #' to stay where it is, the overall proportion of outliers depends on the hidden space volume, which depends
-#' on the number of subspaces and their margins.
+#' on the number of subspaces and their margins. The greater the margin, the bigger the hidden space. 
 #'
 #' @examples
 #' # Generate a stream with default parameters 
@@ -38,13 +39,13 @@
 #' @md
 #' @export
 generate.static.stream <- function(n=1000, prop=0.01, stream.config=NULL) {
-  # Generate n point with dim dimensions where the list of subspaces are generated wall-like with the size of the wall taken from margins list
+  # Generate n point with dim dimensions where the list of subspaces are generated wall-like with the size of the wall taken from margins list as 1-margin
   # In the hidden space, a proportion prop of the points is taken as outliers 
   # Suggestion: add a verbose mode 
   sanitycheck.generate(n=n, prop=prop, stream.config=stream.config)
 
   if(is.null(stream.config)) {
-    stream.config <- generate.stream.config(nstep=1)
+    stream.config <- generate.stream.config(nstep=1, dependency=dependency)
   } else {
     if(stream.config$nstep != 1) {
       stop("The stream.config file in not compatible with static streams: nstep should be = 1")
@@ -53,8 +54,11 @@ generate.static.stream <- function(n=1000, prop=0.01, stream.config=NULL) {
   dim <- stream.config$dim
   subspaces <- stream.config$subspaces
   margins <- stream.config$margins
+  dependency <- stream.config$dependency
+  discretize <- stream.config$discretize
+  
 
-  meta <- generate.multiple.rows(n, dim, subspaces, margins, prop)
+  meta <- generate.multiple.rows(n, dim, subspaces, margins, prop, dependency=dependency, discretize=discretize)
 
   res <- list("data"=meta$data,"labels"=meta$labels, "n"=n, "prop"=prop, "stream.config"=stream.config)
 
@@ -79,12 +83,13 @@ generate.static.stream <- function(n=1000, prop=0.01, stream.config=NULL) {
 #' - \code{stream.config} the associated stream configuration object (which is valid only for dynamic streams)
 #'
 #' @details
-#' The data is generated uniformly, except in certain subspaces where the data is concentrated on the axes, 
-#' in the L-like shape. This should create spaces with high dependency and space to observe hidden outliers. 
+#' The data is generated uniformly, except in certain subspaces where the data is concentrated in particular 
+#' dependencies (i.e. in the "Wall" dependency, data concentrates on the axes, in a L-like shape). 
+#' This should create spaces with high dependency and space to observe hidden outliers. 
 #' Note that the proportion of outlier \code{prop} does not relate directly to the percentage of outliers
-#' in the output stream. Since it corresponds to the probability of a point, being already in the hidden space
+#' in the output stream. Since it corresponds to the probability of a point, being ALREADY in the hidden space
 #' to stay where it is, the overall proportion of outliers depends on the hidden space volume, which depends
-#' on the number of subspaces and their margins.
+#' on the number of subspaces and their margins. The greater the margin, the bigger the hidden space. 
 #'
 #' @examples
 #' # Generate a stream with default parameters 
@@ -103,11 +108,10 @@ generate.static.stream <- function(n=1000, prop=0.01, stream.config=NULL) {
 #' @md
 #' @export
 generate.dynamic.stream <- function(n=100, prop=0.01, stream.config=NULL, verbose=FALSE) {
-  # To check -> what is the correlation matrix ? 
   sanitycheck.generate(n=n, prop=prop, stream.config=stream.config, verbose=verbose)
 
   if(is.null(stream.config)) {
-    stream.config <- generate.stream.config()
+    stream.config <- generate.stream.config(dependency = dependency)
   } else {
     if(stream.config$nstep <= 1) {
       stop("The stream.config file in not compatible with dynamic streams: nstep should be > 1")
@@ -121,7 +125,8 @@ generate.dynamic.stream <- function(n=100, prop=0.01, stream.config=NULL, verbos
   dim <- stream.config$dim
   subspaceslist <- stream.config$subspaceslist
   marginslist <- stream.config$marginslist
-
+  dependency <- stream.config$dependency
+  discretize <- stream.config$discretize
 
   data <- data.frame()
   labels <- c()
@@ -135,9 +140,9 @@ generate.dynamic.stream <- function(n=100, prop=0.01, stream.config=NULL, verbos
     
     if(seq ==1) {
       # At start, all attributes have no dependencies (this means, margins=1 for all)
-      # As a result, we set the start value ("currentmargins") to 1 for all of them 
+      # As a result, we set the start value ("currentmargins") to 0 for all of them 
       subspaces_state <- subspaceslist[[seq]]
-      currentmargins <- c(rep(1, length(subspaceslist[[seq]])))
+      currentmargins <- c(rep(0, length(subspaceslist[[seq]])))
       nextmargins <- marginslist[[seq]]
     } else {
       # We shall consider subspace from the previous and the next state 
@@ -145,19 +150,19 @@ generate.dynamic.stream <- function(n=100, prop=0.01, stream.config=NULL, verbos
       
       for(sub in 1:length(subspaces_state)) {
         # In the case a subspace is contained in the next step, its intended value should be equal to its margins in the next step    
-        # Otherwise, it should be 1 
+        # Otherwise, it should be 0
         if(any(sapply(subspaceslist[[seq]], function(x) setequal(x,subspaces_state[[sub]])))) {
           nextmargins <- c(nextmargins, marginslist[[seq]][sapply(subspaceslist[[seq]], function(x) setequal(x,subspaces_state[[sub]]))])
         } else {
-          nextmargins <- c(nextmargins, 1)
+          nextmargins <- c(nextmargins, 0)
         }
         
         # In the case a subspace is contained in the current step, its start value should be equal to its margins in the current step    
-        # Otherwise, it should be 1 
+        # Otherwise, it should be 0
         if(any(sapply(subspaceslist[[seq-1]], function(x) setequal(x,subspaces_state[[sub]])))) {
           currentmargins <- c(currentmargins, marginslist[[seq-1]][sapply(subspaceslist[[seq-1]], function(x) setequal(x,subspaces_state[[sub]]))])
         } else {
-          currentmargins <- c(currentmargins, 1)
+          currentmargins <- c(currentmargins, 0)
         }
       }
     }
@@ -177,13 +182,13 @@ generate.dynamic.stream <- function(n=100, prop=0.01, stream.config=NULL, verbos
       i <- i+1
       
       # Generate a row 
-      res <- generate.row(dim=dim, subspaces=subspaces_state, margins=margins_state, prop=prop)
+      res <- generate.row(dim=dim, subspaces=subspaces_state, margins=margins_state, prop=prop, dependency=dependency, discretize=discretize)
       data <- rbind(data, t(res$data))
       labels <- c(labels, res$label)
     }
   }
   # Put adequate names on the columns 
-  attributes(data)$names <- c(1:dim)
+  attributes(data)$names <- c(c(1:dim),"class")
   res <- list("data"=data,"labels"=labels, "n"=n, "prop"=prop, "stream.config"=stream.config)
   
   attr(res, "class") <- "stream"

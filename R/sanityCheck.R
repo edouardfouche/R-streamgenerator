@@ -64,11 +64,12 @@ sanitycheck.config <- function(dim=20, mindim=2, maxdim=4, subspaces=NULL, nstep
   stopifnot(is.numeric(volatility))
   stopifnot(is.numeric(values))
 
-  if(!is.null(subspaces)) {
-    if(any(sapply(subspaces, function(x) any(x > dim)))) {
-        stop("This is not possible to have subspaces where dimension numbers are bigger than the total number of dimensions")
-    }
-  }
+  # This was restrictive
+  #if(!is.null(subspaces)) {
+  #  if(any(sapply(subspaces, function(x) any(x > dim)))) {
+  #      stop("This is not possible to have subspaces where dimension numbers are bigger than the total number of dimensions")
+  #  }
+  #}
   if(nstep <= 0) {
     stop("'nstep' should be > 0. Note: 1 means a static stream")
   }
@@ -78,6 +79,7 @@ sanitycheck.config <- function(dim=20, mindim=2, maxdim=4, subspaces=NULL, nstep
   if(cycle < 0 | cycle > nstep/2) {
     stop("The number of elements to create a cycle 'cycle' should be between 0 (no cycle) and half of the number of steps 'nstep'")
   }
+  # Also too restrictive
   #if(dim < 10) {
   #  stop("The number of dimensions 'dim' should be at least >= 10")
   #}
@@ -87,16 +89,17 @@ sanitycheck.config <- function(dim=20, mindim=2, maxdim=4, subspaces=NULL, nstep
   if(maxdim < mindim) {
     stop("The minimum number of dimensions 'mindim' for a subspace shall not be bigger than the maximum number of dimensions")
   }
+  # Too restrictive 
   #if(maxdim > dim/2) {
   #  stop("A maximum number of dimensions bigger than half of the total number of dimensions is not allowed")
   #}
   if(volatility <= 0 | volatility > 1) {
-    stop("The relative proportion at with the system change at each step should be > 0 and <= 1. Note that for a system where volatility = 0, we would use the method 'generate.static.data'")
+    stop("The relative proportion at with the system change at each step should be > 0 and <= 1. Note that for a system where volatility = 0, you should use the method 'generate.static.data'")
   }
   if(any(values > 1) | any(values < 0)) {
     stop("Possibles margin values 'values' should be strictly between 0 and 1")
   }
   if(nstep < 0) {
-    stop("The number of steps 'nstep' should be strictly positive")
+    stop("The number of steps 'nstep' should be positive or equal to 0")
   }
 }
