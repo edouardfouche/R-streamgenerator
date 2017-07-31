@@ -4,6 +4,7 @@
 #'
 #' @param n A vector containing \code{x} values, where the values corresponds to the number of points for each step and \code{x} to the number of steps. 
 #' @param prop Proportion of outliers in the hidden space.
+#' @param proptype Type of the proportion of outliers. Value "proportional": depend on the size of the empty space. Value "absolute": same absolute proportion per subspace.  
 #' @param stream.config A stream configuration object. Should have been generated with \code{nstep = 1}.
 #'
 #' @return An object of class stream, which is a List of 5 elements.
@@ -38,14 +39,14 @@
 #'
 #' @md
 #' @export
-generate.static.stream <- function(n=1000, prop=0.01, stream.config=NULL) {
+generate.static.stream <- function(n=1000, prop=0.01, proptype="proportional", stream.config=NULL) {
   # Generate n point with dim dimensions where the list of subspaces are generated wall-like with the size of the wall taken from margins list as 1-margin
   # In the hidden space, a proportion prop of the points is taken as outliers 
   # Suggestion: add a verbose mode 
   sanitycheck.generate(n=n, prop=prop, stream.config=stream.config)
 
   if(is.null(stream.config)) {
-    stream.config <- generate.stream.config(nstep=1, dependency=dependency)
+    stream.config <- generate.stream.config(nstep=1)
   } else {
     if(stream.config$nstep != 1) {
       stop("The stream.config file in not compatible with static streams: nstep should be = 1")
@@ -56,11 +57,12 @@ generate.static.stream <- function(n=1000, prop=0.01, stream.config=NULL) {
   margins <- stream.config$margins
   dependency <- stream.config$dependency
   discretize <- stream.config$discretize
+  overlapAllowed <- stream.config$overlapAllowed
   
 
-  meta <- generate.multiple.rows(n, dim, subspaces, margins, prop, dependency=dependency, discretize=discretize)
+  meta <- generate.multiple.rows(n, dim, subspaces, margins, prop, proptype=proptype, dependency=dependency, discretize=discretize)
 
-  res <- list("data"=meta$data,"labels"=meta$labels, "n"=n, "prop"=prop, "stream.config"=stream.config)
+  res <- list("data"=meta$data,"labels"=meta$labels, "n"=n, "prop"=prop, "proptype"=proptype, "overlapAllowed"=overlapAllowed, "stream.config"=stream.config)
 
   attr(res, "class") <- "stream"
   return(res)
@@ -72,6 +74,7 @@ generate.static.stream <- function(n=1000, prop=0.01, stream.config=NULL) {
 #'
 #' @param n A vector containing \code{x} values, where the values corresponds to the number of points for each step and \code{x} to the number of steps.
 #' @param prop Proportion of outliers in the hidden space.
+#' @param proptype Type of the proportion of outliers. Value "proportional": depend on the size of the empty space. Value "absolute": same absolute proportion per subspace.  
 #' @param stream.config A stream configuration object. Should have been generated with \code{nstep > 1}.
 #' @param verbose If TRUE, then the state of the stream will be printed as output for every 100 points.
 #'
@@ -107,11 +110,11 @@ generate.static.stream <- function(n=1000, prop=0.01, stream.config=NULL) {
 #'
 #' @md
 #' @export
-generate.dynamic.stream <- function(n=100, prop=0.01, stream.config=NULL, verbose=FALSE) {
+generate.dynamic.stream <- function(n=100, prop=0.01, proptype="proportional", stream.config=NULL, verbose=FALSE) {
   sanitycheck.generate(n=n, prop=prop, stream.config=stream.config, verbose=verbose)
 
   if(is.null(stream.config)) {
-    stream.config <- generate.stream.config(dependency = dependency)
+    stream.config <- generate.stream.config()
   } else {
     if(stream.config$nstep <= 1) {
       stop("The stream.config file in not compatible with dynamic streams: nstep should be > 1")
@@ -127,6 +130,7 @@ generate.dynamic.stream <- function(n=100, prop=0.01, stream.config=NULL, verbos
   marginslist <- stream.config$marginslist
   dependency <- stream.config$dependency
   discretize <- stream.config$discretize
+  overlapAllowed <- stream.config$overlapAllowed
 
   data <- data.frame()
   labels <- c()
@@ -182,14 +186,14 @@ generate.dynamic.stream <- function(n=100, prop=0.01, stream.config=NULL, verbos
       i <- i+1
       
       # Generate a row 
-      res <- generate.row(dim=dim, subspaces=subspaces_state, margins=margins_state, prop=prop, dependency=dependency, discretize=discretize)
+      res <- generate.row(dim=dim, subspaces=subspaces_state, margins=margins_state, prop=prop, proptype=proptype, dependency=dependency, discretize=discretize)
       data <- rbind(data, t(res$data))
       labels <- c(labels, res$label)
     }
   }
   # Put adequate names on the columns 
   attributes(data)$names <- c(c(1:dim),"class")
-  res <- list("data"=data,"labels"=labels, "n"=n, "prop"=prop, "stream.config"=stream.config)
+  res <- list("data"=data,"labels"=labels, "n"=n, "prop"=prop, "proptype"=proptype, "overlapAllowed" = overlapAllowed, "stream.config"=stream.config)
   
   attr(res, "class") <- "stream"
   return(res)

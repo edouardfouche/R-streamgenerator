@@ -12,17 +12,16 @@ subspaces <- list(c(1,2,3), c(3,4), c(5,6,7,8), c(7,8,9))
 meta <- generate.dynamic(dim=20, subspaces=subspaces, nstep=3, volatility=0.5)
 meta_cycle <- generate.dynamic(dim=20, subspaces=subspaces, nstep=10, volatility=0.5, cycle=3)
 
-### TODO: It seems that with "discretize there are too many reported outliers. "
-# except for wall, that looks ok. 
 ### Generate a static stream with some dependencies on choosen subspaces
-stream.config <- generate.stream.config(dim=10, nstep=1, mindim=2, maxdim=2, dependency="Wall", discretize=20)
+stream.config <- generate.stream.config(dim=10, nstep=1, mindim=2, maxdim=4, dependency="Wall", discretize=0, overlapAllowed=FALSE)
+stream.config$subspaces
 ## Override the subspaces and margin
 subspaces <- list(c(1,2))#,c(3,4), c(5,6,7),c(8,9))
 stream.config$subspaces <- subspaces
 stream.config$margins <- c(0.5)#, 0.5, 0.7, 0.1)
 
 # Let's say we are not interested in outliers, so we set the prop to 0
-stream <- generate.static.stream(n=1000, prop=0.01, stream.config=stream.config)
+stream <- generate.static.stream(n=1000, prop=0.040, proptype="absolute", stream.config=stream.config)
 
 library(scales)
 
@@ -31,21 +30,18 @@ plot(stream$data[,1], stream$data[,2], col=alpha(stream$data$class+2,0.5))
 plot(stream$data[,3], stream$data[,4], col=as.numeric((stream$labels != 0))+1)
 plot(stream$data[,8], stream$data[,9], col=as.numeric((stream$labels != 0))+1)
 
-
 stream$labels
 library(rgl)
 plot3d(stream$data[,7], stream$data[,5], stream$data[,6], col=as.numeric((stream$labels != 0))+1)
 
-df <- data.frame()
-for(x in 1:1000) {
-  x <- runif(2)
-  while(sqrt(sum((x-0.5)**2)) < 0.99/2 || sqrt(sum((x-0.5)**2)) > 0.5) {
-    x <- runif(2)
-  }
-  df <- rbind(df, x)
-}
 
-plot(df[,1], df[,2])
+setwd("~/test/")
+
+# TODO: There are some trouble when overlapping is not allowed. 
+config <- generate.stream.config(overlapAllowed = FALSE, volatility = 0.5)
+stream <- generate.dynamic.stream(n=1000, prop=0.005, proptype="proportional", stream.config = config, verbose=TRUE)
+
+
 
 
 ### Generate a static stream with some dependencies on choosen subspaces

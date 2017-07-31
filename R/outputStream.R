@@ -35,6 +35,7 @@ output.stream <- function(stream, prefix) {
 
 	cat(paste(paste("Number of steps:\t", length(stream$n)),
 			     paste("Proportion of outliers:\t", stream$prop),
+			     paste("Proportion type:\t", stream$proptype),
 			     paste("Number of Dimensions:\t", stream$stream.config$dim),
 			     paste("Minimum number of dim:\t", stream$stream.config$mindim),
 			     paste("Maximum number of dim:\t", stream$stream.config$maxdim),
