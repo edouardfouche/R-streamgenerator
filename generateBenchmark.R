@@ -11,10 +11,10 @@ generate.static.benchmark <- function(ndim, dependency, proptype, discretize=0, 
   stream <- generate.static.stream(n=1000, prop=0.01, proptype= proptype, stream.config=stream.config)
   if(discretize == 0) {
     name <- paste("synth", dependency, str_pad(ndim,3,pad="0"), str_pad(num,3,pad="0"), proptype, sep="_")
-    if(allowOverlap) name <- cat(name,"_overlap", sep="_")
+    if(allowOverlap) name <- paste(name,"overlap", sep="_")
   } else {
     name <- paste("synth", dependency, "disc", str_pad(discretize,3,pad="0"), str_pad(ndim,3,pad="0"), str_pad(num,3,pad="0"), proptype, sep="_")
-    if(allowOverlap) name <- cat(name,"_overlap",sep="_")
+    if(allowOverlap) name <- paste(name,"overlap",sep="_")
   }
   output.stream(stream,name)
 }
