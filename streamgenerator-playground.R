@@ -21,7 +21,7 @@ stream.config$subspaces <- subspaces
 stream.config$margins <- c(0.9)#, 0.5, 0.7, 0.1)
 
 # Let's say we are not interested in outliers, so we set the prop to 0
-stream <- generate.static.stream(n=1000, prop=0.005, proptype="absolute", stream.config=stream.config)
+stream <- generate.static.stream(n=1000, prop=0.01, proptype="absolute", stream.config=stream.config)
 
 library(scales)
 

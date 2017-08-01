@@ -17,6 +17,7 @@ More information about the motivation of this project is available in this [arti
 
 Note that the overall proportion of outlier in the output stream does not relate directly to *prop*. Since *prop* corresponds either to the absolute expected proportion of outlier per subspace (*proptype* = "absolute"), or the expected proportion of outlier conditioned on the size of the hidden space (*proptype* = "proportional"). In both cases, it depends on the number of dependent subspaces. 
 
+For each stream, contrasted subspaces are choosen such that roughly 1/4 of the dimensions are not involved in a contrasted subspaces. This is done so to make the search for subspace realistic and to let the possibility for subspaces to change over time. 
 
 **TL;DR** the data is generated uniformly, except in some subspaces where the data is concentrated in the shape of particular dependencies. The choosen dependencies include regions to place hidden outliers. The dependencies are susceptible to change in amplitude and subspaces through time. The following picture shows a snapshot of 100 points in a subspace with a dependency of type "Wall" in a generated data stream at different points in time: 
 

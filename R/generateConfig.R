@@ -9,13 +9,13 @@
 #' @return A list of partly overlapping subspaces spanning over the \code{dim} dimensions 
 #'
 #' @details
-#' Generate at most \code{round((dim*0.5)/length(mindim:maxdim)/x)} subspaces of each size \code{x}
+#' Generate at most \code{round((dim*0.75)/length(mindim:maxdim)/x)} subspaces of each size \code{x}
 #' For example, for \code{generate.subspaces(dim=100, maxdim=5, mindim=2)}: 
 #' * at most 4 5-dim subspaces 
 #' * at most 5 4-dim subspaces
 #' * at most 6 3-dim subspaces
 #' * at most 10 2-dim subspaces
-#' This is done so to make sure that roughly a least 0.5 of the dimensions are unaffected  
+#' This is done so to make sure that roughly a least 25% of the dimensions are unaffected  
 #' This also make sure the dimensions are not dominated by high-dimensional subspaces
 #' TODO: Can this be improved?
 #'
@@ -30,7 +30,7 @@ generate.subspaces <- function(dim=20, mindim=2, maxdim=4, allowOverlap=FALSE) {
   sanitycheck.config(dim=dim, mindim=mindim, maxdim=maxdim)
 
   for(x in maxdim:mindim) {
-    n <- (dim*0.8)/length(mindim:maxdim)/x
+    n <- (dim*0.75)/length(mindim:maxdim)/x
     if(n < 1) {
       maxdim <- maxdim - 1
     }
@@ -42,7 +42,7 @@ generate.subspaces <- function(dim=20, mindim=2, maxdim=4, allowOverlap=FALSE) {
 
   subspaces <- list()
   for(x in maxdim:mindim) {
-    n <- round((dim*0.8)/length(mindim:maxdim)/x)
+    n <- round((dim*0.75)/length(mindim:maxdim)/x)
     if(n != 0) {
       for(y in 1:n) {
         possiblestart <- 1:(dim-x)
