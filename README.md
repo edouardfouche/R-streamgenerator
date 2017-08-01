@@ -28,11 +28,11 @@ Currently, 3 kinds of dependencies are available, "Wall", "Square" and "Donut". 
 
 With *discrete=0*:
 
-![dependencies_real](/img/dependencies_real.svg)
+![dependencies_real](/img/dependencies_real.png)
 
 With *discrete=20*: 
 
-![dependencies_discrete](/img/dependencies_discrete.svg)
+![dependencies_discrete](/img/dependencies_discrete.png)
 
 ## Install
 

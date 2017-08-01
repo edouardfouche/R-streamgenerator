@@ -57,6 +57,7 @@ plot(square$data[,1], square$data[,2], col=alpha(square$data$class+1,0.5), main=
 plot(donut$data[,1], donut$data[,2], col=alpha(donut$data$class+1,0.5), main="Donut (real)")
 dev.off()
 
+
 stream.config <- generate.stream.config(dim=10, nstep=1, mindim=2, maxdim=4, dependency="Wall", discretize=20, allowOverlap=FALSE)
 stream.config$subspaces <- list(c(1,2)) # Override the subspaces and margin
 stream.config$margins <- c(0.8)
@@ -78,7 +79,6 @@ plot(wall$data[,1], wall$data[,2], col=alpha(wall$data$class+1,0.5), main="Wall 
 plot(square$data[,1], square$data[,2], col=alpha(square$data$class+1,0.5), main="Square (discrete)")
 plot(donut$data[,1], donut$data[,2], col=alpha(donut$data$class+1,0.5), main="Donut (discrete)")
 dev.off()
-
 
 stream.config <- generate.stream.config(dim=10, nstep=1, mindim=2, maxdim=4, dependency="Wall", discretize=0, allowOverlap=FALSE)
 stream.config$subspaces <- list(c(1,2)) # Override the subspaces and margin
