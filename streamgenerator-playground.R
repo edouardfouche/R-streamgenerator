@@ -5,7 +5,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 load_all(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 subspaces <- list(c(1,2,3), c(3,4,5), c(7,8), c(11,12), c(15,16))
-subspaces <- replace.subspaces(20, subspaces, indexes=c(2,4))
+replace.subspaces(20, subspaces, indexes=1:length(subspaces), allowOverlap=TRUE)
 
 
 subspaces <- list(c(1,2,3), c(3,4), c(5,6,7,8), c(7,8,9))
@@ -13,26 +13,83 @@ meta <- generate.dynamic(dim=20, subspaces=subspaces, nstep=3, volatility=0.5)
 meta_cycle <- generate.dynamic(dim=20, subspaces=subspaces, nstep=10, volatility=0.5, cycle=3)
 
 ### Generate a static stream with some dependencies on choosen subspaces
-stream.config <- generate.stream.config(dim=10, nstep=1, mindim=2, maxdim=4, dependency="Wall", discretize=0, overlapAllowed=FALSE)
+stream.config <- generate.stream.config(dim=10, nstep=1, mindim=2, maxdim=4, dependency="Wall", discretize=30, allowOverlap=FALSE)
 stream.config$subspaces
 ## Override the subspaces and margin
 subspaces <- list(c(1,2))#,c(3,4), c(5,6,7),c(8,9))
 stream.config$subspaces <- subspaces
-stream.config$margins <- c(0.5)#, 0.5, 0.7, 0.1)
+stream.config$margins <- c(0.9)#, 0.5, 0.7, 0.1)
 
 # Let's say we are not interested in outliers, so we set the prop to 0
-stream <- generate.static.stream(n=1000, prop=0.040, proptype="absolute", stream.config=stream.config)
+stream <- generate.static.stream(n=1000, prop=0.005, proptype="absolute", stream.config=stream.config)
 
 library(scales)
 
 ### visualize it 
-plot(stream$data[,1], stream$data[,2], col=alpha(stream$data$class+2,0.5))
+plot(stream$data[,1], stream$data[,2], col=alpha(stream$data$class+1,0.5))
 plot(stream$data[,3], stream$data[,4], col=as.numeric((stream$labels != 0))+1)
 plot(stream$data[,8], stream$data[,9], col=as.numeric((stream$labels != 0))+1)
 
 stream$labels
 library(rgl)
 plot3d(stream$data[,7], stream$data[,5], stream$data[,6], col=as.numeric((stream$labels != 0))+1)
+
+##### generate visualization for the docu. 
+stream.config <- generate.stream.config(dim=10, nstep=1, mindim=2, maxdim=4, dependency="Wall", discretize=0, allowOverlap=FALSE)
+stream.config$subspaces <- list(c(1,2)) # Override the subspaces and margin
+stream.config$margins <- c(0.8)
+wall <- generate.static.stream(n=1000, prop=0.005, proptype="absolute", stream.config=stream.config)
+
+stream.config <- generate.stream.config(dim=10, nstep=1, mindim=2, maxdim=4, dependency="Square", discretize=0, allowOverlap=FALSE)
+stream.config$subspaces <- list(c(1,2)) # Override the subspaces and margin
+stream.config$margins <- c(0.8)
+square <- generate.static.stream(n=1000, prop=0.005, proptype="absolute", stream.config=stream.config)
+
+stream.config <- generate.stream.config(dim=10, nstep=1, mindim=2, maxdim=4, dependency="Donut", discretize=0, allowOverlap=FALSE)
+stream.config$subspaces <- list(c(1,2)) # Override the subspaces and margin
+stream.config$margins <- c(0.8)
+donut <- generate.static.stream(n=1000, prop=0.005, proptype="absolute", stream.config=stream.config)
+
+svg("img/dependencies_real.svg", width=15, height=5)
+par(mfrow=c(1,3))
+plot(wall$data[,1], wall$data[,2], col=alpha(wall$data$class+1,0.5), main="Wall (real)")
+plot(square$data[,1], square$data[,2], col=alpha(square$data$class+1,0.5), main="Square (real)")
+plot(donut$data[,1], donut$data[,2], col=alpha(donut$data$class+1,0.5), main="Donut (real)")
+dev.off()
+
+stream.config <- generate.stream.config(dim=10, nstep=1, mindim=2, maxdim=4, dependency="Wall", discretize=20, allowOverlap=FALSE)
+stream.config$subspaces <- list(c(1,2)) # Override the subspaces and margin
+stream.config$margins <- c(0.8)
+wall <- generate.static.stream(n=1000, prop=0.005, proptype="absolute", stream.config=stream.config)
+
+stream.config <- generate.stream.config(dim=10, nstep=1, mindim=2, maxdim=4, dependency="Square", discretize=20, allowOverlap=FALSE)
+stream.config$subspaces <- list(c(1,2)) # Override the subspaces and margin
+stream.config$margins <- c(0.8)
+square <- generate.static.stream(n=1000, prop=0.005, proptype="absolute", stream.config=stream.config)
+
+stream.config <- generate.stream.config(dim=10, nstep=1, mindim=2, maxdim=4, dependency="Donut", discretize=20, allowOverlap=FALSE)
+stream.config$subspaces <- list(c(1,2)) # Override the subspaces and margin
+stream.config$margins <- c(0.8)
+donut <- generate.static.stream(n=1000, prop=0.005, proptype="absolute", stream.config=stream.config)
+
+svg("img/dependencies_discrete.svg", width=15, height=5)
+par(mfrow=c(1,3))
+plot(wall$data[,1], wall$data[,2], col=alpha(wall$data$class+1,0.5), main="Wall (discrete)")
+plot(square$data[,1], square$data[,2], col=alpha(square$data$class+1,0.5), main="Square (discrete)")
+plot(donut$data[,1], donut$data[,2], col=alpha(donut$data$class+1,0.5), main="Donut (discrete)")
+dev.off()
+
+
+stream.config <- generate.stream.config(dim=10, nstep=1, mindim=2, maxdim=4, dependency="Wall", discretize=0, allowOverlap=FALSE)
+stream.config$subspaces <- list(c(1,2)) # Override the subspaces and margin
+stream.config$margins <- c(0.8)
+stream <- generate.static.stream(n=1000, prop=0.005, proptype="absolute", stream.config=stream.config)
+plot(stream$data[,1], stream$data[,2], col=alpha(stream$data$class+1,0.5))
+
+
+# Let's say we are not interested in outliers, so we set the prop to 0
+stream <- generate.static.stream(n=1000, prop=0.005, proptype="absolute", stream.config=stream.config)
+
 
 
 setwd("~/test/")
@@ -62,7 +119,7 @@ stream.config$subspaces <- subspaces
 stream.config$margins <- c(0.9, 0.9, 0.2)
 
 # Let's say we are not interested in outliers, so we set the prop to 0
-stream <- generate.static.stream(n=1000, prop=0.01, stream.config=stream.config)
+stream <- generate.static.stream(n=1000, prop=0, stream.config=stream.config)
 
 
 

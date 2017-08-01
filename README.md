@@ -7,19 +7,32 @@ More information about the motivation of this project is available in this [arti
 
 ## How it works
 
-- We define (or generate randomly) a list of subspaces *subspaces* from a number of dimensions *dim*, where each subspace is composed of at least *mindim* dimensions and at most *maxdim* dimensions. The subspaces shall overlap, but no subspace shall contain and or be contained in another. 
+- We define (or generate randomly) a list of subspaces *subspaces* from a number of dimensions *dim*, where each subspace is composed of at least *mindim* dimensions and at most *maxdim* dimensions. The subspaces shall overlap or not, depending on user's parameter *allowOverlap*, but no subspace shall contain and or be contained in another. 
 - We determine *margins*, a list of numbers between 0 and 1 having the same size as *subspaces*. The subspace at position *x* is assigned to the margin at position *x*. 
-- Each data point is represented by a vector of length *dim*, whose values are drown from the uniform distribution between 0 and 1, at the exception of the subspaces specified in *subspaces*. For each subspace, an hypercube of side *margin*-1 is defined, such that all points falling into this hypercube are uniformly moved away to the rest of the space. 
-- Each data point falling into the hypercube has a probability *prop* to stay in it, which makes this point a *non-trivial* outlier. We make sure that the point is not too close to the border of the hypercube by a tolerance of about 10% of *margin*-1. 
-- The list *subspaces* and *margins* are changed over a number *nstep* of time steps by a proportion *volatility*. So if *volatility* is equal to 0.5, half of the subspace/margin pairs will be changed at each step. Each step is composed of a number of *n* points, which can also vary for each step. Between each time step, the state of the generator change uniformly from the current to the next *subspaces*/*margins* list. 
+- Each data point is represented by a vector of length *dim*, whose values are drown from the uniform distribution between 0 and 1, at the exception of the subspaces specified in *subspaces*. For each of those subspaces, a dependency is created, this dependency may have different shapes (Wall, Square, Donut). Then strength of the dependency in a subspace depends on its *margin* value. 
+- Each subspace have a proportion *prop* of outlier. If the *proptype* is set to *proportional*, then the expected proportion of outlier in a subspace is proportional to its *margin*, i.e., the volume of hidden space. If the *proptype* is set to *absolute*, then the expected proportion of outlier depends on the number of points only. 
+- There is the possibility to generate *static* streams and *dynamic* streams. For dynamic *streams*, the lists *subspaces* and *margins* are changed over a number *nstep* of time steps by a proportion *volatility*. For example, if *volatility* is equal to 0.5, half of the subspace/margin pairs will be changed at each step. Each step is composed of a number of *n* points, which can also vary for each step. 
+- Between each time step, the state of the generator change uniformly from the current to the next *subspaces*/*margins* list. 
+- The generated streams can be composed of real values (default) or can be discretized into a number of *discrete* values. 
 
-Note that the proportion of outlier in the output stream does not relate directly to *prop*. Since *prop* corresponds to the probability of a point in the hidden space to stay where it is, the overall proportion of outliers depends on the hidden space volume, which depends on the number of subspaces and their margins.
+Note that the overall proportion of outlier in the output stream does not relate directly to *prop*. Since *prop* corresponds either to the absolute expected proportion of outlier per subspace, or the expected proportion of outlier conditioned on the size of the hidden space. In both cases, it depends on the number of subspaces with dependencies. 
 
-**TL;DR** the data is generated uniformly, except in some subspaces where the data is concentrated on the axes at a certain degree, in a L-like shape (in the 2-D case). This type of dependency leaves space to place *hidden* outliers. The dependencies are susceptible to change in amplitude and subspaces through time. The following picture shows a snapshot of 100 points of  attributes n°7 and n°8 in data stream generated this way at different points in time: 
+
+**TL;DR** the data is generated uniformly, except in some subspaces where the data is concentrated in the shape of particular dependencies. The choosen dependencies include regions to place hidden outliers. The dependencies are susceptible to change in amplitude and subspaces through time. The following picture shows a snapshot of 100 points in a subspace with a dependency of type "Wall" in a generated data stream at different points in time: 
 
 ![streamgenerator_1](/img/streamgenerator_1.png)
 
 As you can see, the relationship between attribute n°7 and n°8 has evolved through time. Also, there is an outlier in picture 5 (in red). Obviously, by looking at the whole time window, this point would probably not have been detected as such. 
+
+Currently, 3 kinds of dependencies are available, "Wall", "Square" and "Donut". Here is what they look like in 2-D spaces, with *n = 1000*, *margin=0.8*, *prop=0.005*, *proptype="absolute"*. Outliers are showed in red. 
+
+With *discrete=0*:
+
+![dependencies_real](/img/dependencies_real.svg)
+
+With *discrete=20*: 
+
+![dependencies_discrete](/img/dependencies_discrete.svg)
 
 ## Install
 
@@ -80,7 +93,9 @@ output.stream(stream, "example")
 * Write more tests
 * Write about the generation approach
 * Develop other dependencies and transitions (drifts)
-* Develop for discrete data too 
+* Allow mixed dependencies in multivariate streams
+* Allow mixed real/discrete data sets
+* Write visualization functions 
 * Use it 
 
 

@@ -57,12 +57,11 @@ generate.static.stream <- function(n=1000, prop=0.01, proptype="proportional", s
   margins <- stream.config$margins
   dependency <- stream.config$dependency
   discretize <- stream.config$discretize
-  overlapAllowed <- stream.config$overlapAllowed
-  
+  allowOverlap <- stream.config$allowOverlap
 
   meta <- generate.multiple.rows(n, dim, subspaces, margins, prop, proptype=proptype, dependency=dependency, discretize=discretize)
 
-  res <- list("data"=meta$data,"labels"=meta$labels, "n"=n, "prop"=prop, "proptype"=proptype, "overlapAllowed"=overlapAllowed, "stream.config"=stream.config)
+  res <- list("data"=meta$data,"labels"=meta$labels, "n"=n, "prop"=prop, "proptype"=proptype, "allowOverlap"=allowOverlap, "stream.config"=stream.config)
 
   attr(res, "class") <- "stream"
   return(res)
@@ -130,7 +129,7 @@ generate.dynamic.stream <- function(n=100, prop=0.01, proptype="proportional", s
   marginslist <- stream.config$marginslist
   dependency <- stream.config$dependency
   discretize <- stream.config$discretize
-  overlapAllowed <- stream.config$overlapAllowed
+  allowOverlap <- stream.config$allowOverlap
 
   data <- data.frame()
   labels <- c()
@@ -193,7 +192,7 @@ generate.dynamic.stream <- function(n=100, prop=0.01, proptype="proportional", s
   }
   # Put adequate names on the columns 
   attributes(data)$names <- c(c(1:dim),"class")
-  res <- list("data"=data,"labels"=labels, "n"=n, "prop"=prop, "proptype"=proptype, "overlapAllowed" = overlapAllowed, "stream.config"=stream.config)
+  res <- list("data"=data,"labels"=labels, "n"=n, "prop"=prop, "proptype"=proptype, "allowOverlap" = allowOverlap, "stream.config"=stream.config)
   
   attr(res, "class") <- "stream"
   return(res)

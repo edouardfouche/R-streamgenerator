@@ -33,154 +33,70 @@
 #' @importFrom stats runif
 generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.9,0.9), dependency = "Wall", prop=0.01, proptype="proportional", discretize=0) {
   # no sanity check, assumed to be done already 
+  isInHiddenSpace.Wall <- function(row, subspace) {all(row[subspaces[[subspace]]] > 1-margins[[subspace]])}
+  isInHiddenSpace.Square <- function(row, subspace) {all(abs(row[subspaces[[subspace]]]-0.5) < margins[[subspace]]/2)}
+  isInHiddenSpace.Donut <- function(row, subspace) {sqrt(sum((row[subspaces[[subspace]]]-0.5)**2)) < margins[[subspace]]/2 | sqrt(sum((row[subspaces[[subspace]]]-0.5)**2)) > 0.5}
   
-  generate.row.subspace.Wall <- function(row, subspace) { 
-    isInHiddenSpace.Wall <- function(row, subspace) {all(row[subspaces[[subspace]]] > 1-margins[[subspace]])}
-    # Do something only if the point is already in the hidden region
-    if(isInHiddenSpace.Wall(row, subspace) || (proptype=="absolute")) { 
-      # Do something only if the point is not already an outlier in any other subspace that has non-empty intersection 
-      # If this is the case, we might destroy his outlying behavior in the other subspace, which we want to avoid. 
-      if(!any(lapply(subspaces[outlierFlags], function(y) length(intersect(subspaces[[subspace]],y))) > 0)) {
-        outlierFlags[subspace] <- sample(c(TRUE,FALSE),1,prob=c(prop,1-prop)) # Choose if it is an outlier in this subspace, with probability prob
-        if(!outlierFlags[subspace]) { # If we decide not to make an outlier out of it, move it to the L-shaped cluster 
-          # THIS IS A PREVIOUS WAY TO DO IT. IT MIGHT BE MORE EFFICIENT BUT IT IS MORE COMPLICATED. 
-          # Function generating the volumes of hypercubes of for subspace x of dimension length(subspaces[[x]])
-          #volume_function <- function(y) (1-margins[[x]])^y*margins[[x]]^(length(subspaces[[x]])-y)*choose(length(subspaces[[x]]),y)
-          # Choose how many dimension we exclude (i.e., put it in an arm of the L or at the intersection, uniformly)
-          # The number of dimensions to exclude is chosen with a probability such that it is uniform with the space of the margin
-          # in the respective projections. 
-          #nb_exclude <- sample(0:(length(subspaces[[x]])-1), 1, prob=sapply(length(subspaces[[x]]):1, volume_function))
-          #exclude <- sample(1:length(subspaces[[x]]),nb_exclude)
-          #ifelse(nb_exclude != 0, s <- subspaces[[x]][-exclude], s <- subspaces[[x]])
-          # Rescale uniformly the values of the attributes we did not exclude to fit in the range of the margin 
-          #r[s] <- (r[s]-(1-margins[[x]]))*(1-margins[[x]])/margins[[x]]
-          while(isInHiddenSpace.Wall(row, subspace)) {
-            row[subspaces[[subspace]]] <- runif(length(subspaces[[subspace]])) 
-          }
-        } else {
-          if(margins[[subspace]] >= 0.1) {
-            while(!isInHiddenSpace.Wall(row, subspace)) {
-              row[subspaces[[subspace]]] <- runif(length(subspaces[[subspace]])) 
-            }
-            # If we decide to make an outlier out of it:
-            # Add a little margin (20% of the hidden space) to avoid possible ambiguities about the nature of the outlier 
-            row[subspaces[[subspace]]] <- row[subspaces[[subspace]]] + (1-row[subspaces[[subspace]]])*0.2
-          }
-        }
-      }
+  ensureOutlyingBehavior.Wall <- function(row, subspace) row[subspaces[[subspace]]] + (1-row[subspaces[[subspace]]])*0.2
+  ensureOutlyingBehavior.Square <- function(row, subspace) {
+    transformed_r <- row[subspaces[[subspace]]]-0.5
+    transformed_r <- transformed_r * ((margins[[subspace]]/2)-(margins[[subspace]]/2)*0.2) / (margins[[subspace]]/2)
+    transformed_r + 0.5
+  }
+  ensureOutlyingBehavior.Donut <- function(row, subspace) { 
+    # Distinguish between "the point is inside the sphere" and "the point is in the corner"
+    if(sqrt(sum((row[subspaces[[subspace]]]-0.5)**2)) < margins[[subspace]]/2) { # If it is INSIDE the donut, push it towards the center
+      absr <- abs(row[subspaces[[subspace]]]-0.5)
+      res <- ((row[subspaces[[subspace]]]-0.5) * absr/(absr + absr*0.2)) + 0.5
+    } else { # If it is OUTSIDE the Donut, push it towards the corners 
+      absr <- abs(row[subspaces[[subspace]]]-0.5)
+      res <- ((row[subspaces[[subspace]]]-0.5) * (absr + (0.5-absr)*0.3)/absr) + 0.5  # I've put 0.3 here because otherwise I find it too close really 
     }
-    row
+    res
   }
   
-  generate.row.subspace.Square <- function(row, subspace) { 
-    isInHiddenSpace.Square <- function(row, subspace) {all(abs(row[subspaces[[subspace]]]-0.5) < margins[[subspace]]/2)}
-    # Do something only if the point is already in the hidden region
-    if(isInHiddenSpace.Square(row, subspace) || (proptype=="absolute")) { 
-      # Do something only if the point is not already an outlier in any other subspace that has non-empty intersection 
-      # If this is the case, we might destroy his outlying behavior in the other subspace, which we want to avoid. 
-      if(!any(lapply(subspaces[outlierFlags], function(y) length(intersect(subspaces[[x]],y))) > 0)) {
-        outlierFlags[subspace] <- sample(c(TRUE,FALSE),1,prob=c(prop,1-prop)) # Choose if it is an outlier in this subspace, with probability prob
-        if(!outlierFlags[subspace]) { # If we decide not to make an outlier out of it, regenerate it outside from the hidden region 
-          while(isInHiddenSpace.Square(row, subspace)) {
-            row[subspaces[[subspace]]] <- runif(length(subspaces[[subspace]])) 
-          }
-        } else {
-          if(margins[[subspace]] >= 0.1) {
-            while(!isInHiddenSpace.Square(row, subspace)) {
-              row[subspaces[[subspace]]] <- runif(length(subspaces[[subspace]])) 
-            }
-            # If we decide to make an outlier out of it:
-            # Add a little margin (20% of the hidden space) to avoid possible ambiguities about the nature of the outlier 
-            transformed_r <- row[subspaces[[subspace]]]-0.5
-            transformed_r <- transformed_r * ((margins[[subspace]]/2)-(margins[[subspace]]/2)*0.2) / (margins[[subspace]]/2)
-            row[subspaces[[subspace]]] <- transformed_r + 0.5
-          }
-        }
-      }
-    }
-    row
-  }
-  
-  # DEPRECATED
-  # I wrote than when I tried to generate Donuts, but turns out it produces some kind of parallel triangle. Interesting.
-  generate.row.subspace.Triangle <- function(row, subspace) { 
-    # Do something only if the point is already in the hidden region
-    if(sum(row[subspaces[[subspace]]]-0.5)**2 < margins[[subspace]]/2 | sum(row[subspaces[[subspace]]]-0.5)**length(subspaces[[subspace]]) > 1) { 
-      # Do something only if the point is not already an outlier in any other subspace that has non-empty intersection 
-      # If this is the case, we might destroy his outlying behavior in the other subspace, which we want to avoid. 
-      if(!any(lapply(subspaces[outlierFlags], function(y) length(intersect(subspaces[[subspace]],y))) > 0)) {
-        outlierFlags[subspace] <- sample(c(TRUE,FALSE),1,prob=c(prop,1-prop)) # Choose if it is an outlier in this subspace, with probability prob
-        if(!outlierFlags[subspace]) { # If we decide not to make an outlier out of it, regenerate it outside from the hidden region 
-          while(sum(row[subspaces[[subspace]]]-0.5)**2 < margins[[subspace]]/2 | sum(row[subspaces[[subspace]]]-0.5)**length(subspaces[[subspace]]) > 1) {
-            row[subspaces[[subspace]]] <- runif(length(subspaces[[subspace]])) 
-          }
-        } else {
-          # If we decide to make an outlier out of it:
-          # Add a little margin (20% of the hidden space) to avoid possible ambiguities about the nature of the outlier 
-          # Distinguish between "the point is inside the sphere" and "the point is in the corner"
-          if(sum(row[subspaces[[subspace]]]-0.5)**2 < margins[[subspace]]/2) {
-            current_radius = sum(row[subspaces[[subspace]]]-0.5)**2
-            new_radius = current_radius - current_radius*0.2
-            row[subspaces[[subspace]]] = row[subspaces[[subspace]]] * new_radius / current_radius
-          } else {
-            # Push it (probably not what I want to do but ok)
-            current_radius = sum(row[subspaces[[subspace]]]-0.5)**2
-            new_radius = current_radius + current_radius*0.2
-            row[subspaces[[subspace]]] = row[subspaces[[subspace]]] * new_radius / current_radius
-          }
-        }
-      }
-    }
-    r
-  }
-  
-  generate.row.subspace.Donut <- function(row, subspace) { 
-    # Do something only if the point is already in the hidden region
-    isInHiddenSpace.Donut <- function(row, subspace) {sqrt(sum((row[subspaces[[subspace]]]-0.5)**2)) < margins[[subspace]]/2 | sqrt(sum((row[subspaces[[subspace]]]-0.5)**2)) > 0.5}
-    if(isInHiddenSpace.Donut(row, subspace) || (proptype=="absolute")) { 
-      # Do something only if the point is not already an outlier in any other subspace that has non-empty intersection 
-      # If this is the case, we might destroy his outlying behavior in the other subspace, which we want to avoid. 
-      if(!any(lapply(subspaces[outlierFlags], function(y) length(intersect(subspaces[[subspace]],y))) > 0)) {
-        outlierFlags[subspace] <- sample(c(TRUE,FALSE),1,prob=c(prop,1-prop)) # Choose if it is an outlier in this subspace, with probability prob
-        if(!outlierFlags[subspace]) { # If we decide not to make an outlier out of it, regenerate it outside from the hidden region 
-          while(isInHiddenSpace.Donut(row, subspace)) {
-            row[subspaces[[subspace]]] <- runif(length(subspaces[[subspace]])) 
-          }
-        } else {
-          if(margins[[subspace]] >= 0.1) { 
-            while(!isInHiddenSpace.Donut(row, subspace)) {
-              row[subspaces[[subspace]]] <- runif(length(subspaces[[subspace]])) 
-            }
-            # If we decide to make an outlier out of it:
-            # Add a little margin (30% of the hidden space) to avoid possible ambiguities about the nature of the outlier 
-            # Distinguish between "the point is inside the sphere" and "the point is in the corner"
-            if(sqrt(sum((row[subspaces[[subspace]]]-0.5)**2)) < margins[[subspace]]/2) { # If it is INSIDE the donut, push it towards the center
-              absr <- abs(row[subspaces[[subspace]]]-0.5)
-              row[subspaces[[subspace]]] = ((row[subspaces[[subspace]]]-0.5) * absr/(absr + (0.5-absr)*0.3)) + 0.5
-            } else { # If it is OUTSIDE the Donut, push it towards the corners 
-              absr <- abs(row[subspaces[[subspace]]]-0.5)
-              row[subspaces[[subspace]]] = ((row[subspaces[[subspace]]]-0.5) * (absr + (0.5-absr)*0.3)/absr) + 0.5
-            }
-          }
-        }
-      }
-    }
-    row
-  }
-  
-  r <- runif(dim)
   outlierFlags <- rep(FALSE, length(subspaces))
+  r <- runif(dim)
+  
   for(s in 1:length(subspaces)) {
     if(dependency == "Wall") {
-      r <- generate.row.subspace.Wall(r, s)
+      isInHiddenSpace <- isInHiddenSpace.Wall
+      ensureOutlyingBehavior <- ensureOutlyingBehavior.Wall 
     } else if(dependency == "Square") {
-      r <- generate.row.subspace.Square(r, s)
+      isInHiddenSpace <- isInHiddenSpace.Square
+      ensureOutlyingBehavior <- ensureOutlyingBehavior.Square
     } else if(dependency == "Donut") {
-      r <- generate.row.subspace.Donut(r, s)
+      isInHiddenSpace <- isInHiddenSpace.Donut
+      ensureOutlyingBehavior <- ensureOutlyingBehavior.Donut
     } else {
       stop("Currently unsupported dependency type")
     }
+    
+    # Do something only if the point is already in the hidden space OR the proportion of outlier is absolute. 
+    if(isInHiddenSpace(r, s) || (proptype=="absolute")) { 
+      # Do something only if the point is not already an outlier in any other subspace that has non-empty intersection 
+      # If this is the case, we might destroy his outlying behavior in the other subspace, which we want to avoid. 
+      if(!any(lapply(subspaces[outlierFlags], function(y) length(intersect(subspaces[[s]],y))) > 0)) {
+        outlierFlags[s] <- sample(c(TRUE,FALSE),1,prob=c(prop,1-prop)) # Choose if it is an outlier in this subspace, with probability prob
+        if(!outlierFlags[s]) { # If we decide not to make an outlier out of it, regenerate it outside from the hidden region 
+          while(isInHiddenSpace(r, s)) {
+            r[subspaces[[s]]] <- runif(length(subspaces[[s]])) 
+          }
+        } else {
+          # Just to make sure we don't go in an infinite loop in the case the margin is too small. 
+          if(margins[[s]] >= 0.1) { 
+            while(!isInHiddenSpace(r, s)) {
+              r[subspaces[[s]]] <- runif(length(subspaces[[s]])) 
+            }
+            # If we decide to make an outlier out of it:
+            # Add a little margin (20% of the hidden space) to avoid possible ambiguities about the nature of the outlier 
+            r[subspaces[[s]]] <- ensureOutlyingBehavior(r,s)
+          }
+        }
+      }
+    }
   }
+  
   
   
   ###################### Discretize

@@ -43,6 +43,7 @@ output.stream <- function(stream, prefix) {
 			     paste("Cycle length:\t\t", stream$stream.config$cycle),
 			     paste("Volatility:\t\t", stream$stream.config$volatility),
 			     paste("Dependency:\t\t", stream$stream.config$dependency), 
+			     paste("Overlap Allowed:\t\t", stream$stream.config$allowOverlap), 
 			     paste("Discrete:\t\t", stream$stream.config$discretize), sep="\n"))
 
 	cat(paste("\n\nData", 
