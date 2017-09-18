@@ -96,7 +96,9 @@ output.stream(stream, "example")
 * Develop other dependencies and transitions (drifts)
 * Allow mixed dependencies in multivariate streams
 * Allow mixed real/discrete data sets
+* Provide control on the number/proportion of contrasted subspaces in the stream
 * Write visualization functions 
+* Create a "cross" or "sinusoidal" pattern
 * Use it 
 
 
