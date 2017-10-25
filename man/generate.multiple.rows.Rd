@@ -5,7 +5,8 @@
 \title{Helper function that generate multiple rows with the same characteristics
 Useful to generate a static stream}
 \usage{
-generate.multiple.rows(n, dim, subspaces, margins, prop)
+generate.multiple.rows(n, dim, subspaces, margins, dependency, prop, proptype,
+  discretize)
 }
 \arguments{
 \item{n}{Number of rows to generate.}
@@ -17,6 +18,8 @@ generate.multiple.rows(n, dim, subspaces, margins, prop)
 \item{margins}{List of margins that correspond to each subspace.}
 
 \item{prop}{Probability of a point belonging to the hidden space of a subspace to become an outlier.}
+
+\item{proptype}{Type of the proportion of outliers. Value "proportional": depend on the size of the empty space. Value "absolute": same absolute proportion per subspace.}
 }
 \value{
 A list with 2 elements where \code{data} is a data.frame object containing the \code{n} vectors and \code{labels} containing \code{n} corresponding labels.

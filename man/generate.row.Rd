@@ -2,37 +2,42 @@
 % Please edit documentation in R/generateRow.R
 \name{generate.row}
 \alias{generate.row}
-\title{Generate a raw with statistic properties}
+\title{Generate a raw with statistical properties}
 \usage{
 generate.row(dim = 10, subspaces = list(c(3, 4), c(7, 8)),
-  margins = list(0.1, 0.1), prop = 0.01)
+  margins = list(0.9, 0.9), dependency = "Wall", prop = 0.01,
+  proptype = "proportional", discretize = 0)
 }
 \arguments{
-\item{dim}{Number of dimension of the vector generate.}
+\item{dim}{Number of dimension of the generated vector}
 
-\item{subspaces}{List of subspaces that contain a hidden space (i.e they show some dependency).}
+\item{subspaces}{List of subspaces that contain a dependency.}
 
 \item{margins}{List of margins that correspond to each subspace.}
 
+\item{dependency}{Type of dependency for the subspaces (We don't support 'mixed') currently}
+
 \item{prop}{Probability of a point belonging to the hidden space of a subspace to become an outlier.}
+
+\item{proptype}{Type of the proportion of outliers. Value "proportional": depend on the size of the empty space. Value "absolute": same absolute proportion per subspace.}
 }
 \value{
 A list with 2 elements where \code{data} contains the generated vector and \code{labels} the corresponding label.
 }
 \description{
-Generate a raw with statistic properties
+Generate a raw with statistical properties
 }
 \details{
 The row is at first drawn from the uniform distribution between 0 and 1 over each dimension
-For each subspace in \code{subspaces}, if the row belongs to the hidden space (i.e. the value for each dimension
-of the subspace if bigger than the margin), then it becomes an outlier with probability \code{prop}
-If it is an outlier, it would stay in the hidden space and we make sure it is not too close from the border
-by rescaling the value so that it is at least 10% of the hidden space away from it.
-If it is not an outlier, we map uniformly the point to one of the axis or center (for a 3-D dimensions)
-The probability to be map to one of such element is determined by their volume
+For each subspace in \code{subspaces}, if the point belongs to the hidden space of the specified dependency
+(i.e. for the "Wall", the value for each dimension of the subspace if bigger than the 1-margin),
+then it becomes an outlier with probability \code{prop}. If it is an outlier, it would stay in the hidden space
+and we make sure it is not too close from the border by rescaling the value so that it is at least 10% of the hidden space away from it.
+If it is not an outlier, we map uniformly the point to the dependencies (i.e. for "Wall", one of the axis or center (for a 3-D dimensions))
+The probability to be mapped to one of such element is determined by their volume
 The bigger the area, the more likely the point will be mapped to the area.
 In the case a point is already an outlier in a subspace, it cannot become and outlier in an overlapping subspace
-But it still has the same probability to become an outlier in another space. This appends by chance (pigeonhole principle)
+But it still has the same probability to become an outlier in another space. This appends occasionally (pigeonhole principle)
 
 If the point if not an outlier, it will have \code{0} as label, otherwise, it has a string representing the different subspaces
 }
