@@ -4,25 +4,29 @@
 \alias{generate.dynamic}
 \title{Generate iteratively a list of subspaces and margins based on the initial set of subspaces with a particular volatility}
 \usage{
-generate.dynamic(dim, subspaces, nsteps = 10, volatility = 0.1,
-  values = c(0.1, 0.2, 0.3, 0.4, 0.5, 0.8, 0.7, 0.9), cycle = 0)
+generate.dynamic(dim, subspaces, nstep = 10, volatility = 0.1,
+  values = c(0.1, 0.2, 0.3, 0.4, 0.5, 0.8, 0.7, 0.9), cycle = 0,
+  allowOverlap = FALSE)
 }
 \arguments{
 \item{dim}{Total number of dimensions from which to generate the subspaces.}
 
 \item{subspaces}{A list of generated subspaces.}
 
-\item{nsteps}{Number of steps for which we generate new subspaces and margin values.}
+\item{nstep}{Number of steps for which we generate new subspaces and margin values.}
 
 \item{volatility}{Percentage of subspaces to replace at each step.}
 
 \item{values}{A vector of valid values for subspace margins.}
 
 \item{cycle}{If > 0 the dynamic contains a cycle of this size.}
+
+\item{allowOverlap}{States whether overlap between subspaces are allowed. (might be a bit more complex if TRUE.). Note that full overlap and subset relation are never allowed.}
 }
 \value{
 A list with two elements:
 \itemize{
+\item \code{marginlist} A list containing lists of margins for each steps
 \item \code{subspacelist} A list containing lists of subspaces for each steps
 }
 }
@@ -35,8 +39,8 @@ and assigned a margin taken from values
 }
 \examples{
 subspaces <- list(c(1,2,3), c(3,4), c(5,6,7,8), c(7,8,9))
-meta <- generate.dynamic(dim=20, subspaces=subspaces, nsteps=3, volatility=0.5)
-meta_cycle <- generate.dynamic(dim=20, subspaces=subspaces, nsteps=10, volatility=0.5, cycle=3)
+meta <- generate.dynamic(dim=20, subspaces=subspaces, nstep=3, volatility=0.5)
+meta_cycle <- generate.dynamic(dim=20, subspaces=subspaces, nstep=10, volatility=0.5, cycle=3)
 
 }
 \author{
