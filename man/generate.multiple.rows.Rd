@@ -2,8 +2,7 @@
 % Please edit documentation in R/generateRow.R
 \name{generate.multiple.rows}
 \alias{generate.multiple.rows}
-\title{Helper function that generate multiple rows with the same characteristics
-Useful to generate a static stream}
+\title{Helper function that generate multiple rows}
 \usage{
 generate.multiple.rows(n, dim, subspaces, margins, dependency, prop, proptype,
   discretize)

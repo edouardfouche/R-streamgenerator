@@ -167,6 +167,8 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
 
 
 
+#'  Helper function that generate multiple rows
+#' 
 #' Helper function that generate multiple rows with the same characteristics
 #' Useful to generate a static stream
 #'

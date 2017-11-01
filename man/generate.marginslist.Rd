@@ -2,7 +2,7 @@
 % Please edit documentation in R/generateConfig.R
 \name{generate.marginslist}
 \alias{generate.marginslist}
-\title{Generate iteratively a list of margins for the same set of subspaces with a particular volatility (not used currently)}
+\title{Generate a list of margins}
 \usage{
 generate.marginslist(subspaces, nstep = 10, volatility = 0.1,
   values = c(0.1, 0.2, 0.3, 0.4, 0.5, 0.8, 0.7, 0.9))

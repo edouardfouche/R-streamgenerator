@@ -2,7 +2,7 @@
 % Please edit documentation in R/generateConfig.R
 \name{generate.stream.config}
 \alias{generate.stream.config}
-\title{Generate a valid stream configuration.}
+\title{Valid stream configuration}
 \usage{
 generate.stream.config(dim = 20, mindim = 2, maxdim = 4, values = c(0.1,
   0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9), nstep = 10, dependency = "Wall",
