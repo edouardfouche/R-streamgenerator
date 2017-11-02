@@ -59,6 +59,49 @@ load_all("~/path/to/cloned/R-streamgenerator/")
 
 Note that the package is not published to CRAN (yet). 
 
+## Package documentation
+Documentation (.Rd files) for this package was created by using roxygen2 package. 
+
+1. Install devtool package as it is shown above (Install 1.&2.), further install package roxygen2: 
+
+```R
+install.packages("roxygen2")
+```
+Roxygen2 format required special comments which should be started with  #' 
+
+2. After creation this comments press Ctrl/Cmd + Shift + D or run:
+
+```R
+document()
+```
+a man/NameOfFunction.Rd  will be generated.
+
+3. For using created documentation run:
+```R
+?NameOfFunction
+```
+or 
+
+```R
+help("NameOfFunction")
+```
+
+Within R-Streamgenerator documentation was created for following functions:
+
+```R
+generate.subspaces()
+replace.subspaces()
+generate.margins() 
+generate.marginslist()
+generate.dynamic()
+generate.stream.config()
+generate.row()
+generate.multiple.rows()
+generate.static.stream()
+generate.dynamic.stream()
+output.stream()
+```
+
 ## Get started
 
 * Generate a static stream 
