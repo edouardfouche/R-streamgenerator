@@ -2,7 +2,7 @@
 % Please edit documentation in R/generateConfig.R
 \name{generate.dynamic}
 \alias{generate.dynamic}
-\title{Generate iteratively a list of subspaces and margins based on the initial set of subspaces with a particular volatility}
+\title{Generate iteratively a list of subspaces and margins (dynamic)}
 \usage{
 generate.dynamic(dim, subspaces, nstep = 10, volatility = 0.1,
   values = c(0.1, 0.2, 0.3, 0.4, 0.5, 0.8, 0.7, 0.9), cycle = 0,

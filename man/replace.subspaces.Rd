@@ -2,10 +2,9 @@
 % Please edit documentation in R/generateConfig.R
 \name{replace.subspaces}
 \alias{replace.subspaces}
-\title{Resample compatible subspaces to replace a set of subspaces.
-The new subspaces should not include or be included in another subspace from the original set.}
+\title{Replace a set of subspaces}
 \usage{
-replace.subspaces(dim, subspaces, indexes, allowOverlap)
+replace.subspaces(dim, subspaces, indexes, allowOverlap = FALSE)
 }
 \arguments{
 \item{dim}{Total number of dimensions from which to generate the subspaces.}

@@ -1,3 +1,5 @@
+#' Random generation of consecutive subspaces
+#'
 #' Random generation of partly overlapping consecutive subspaces with a minimum number of dimensions \code{mindim} 
 #' and a maximum number of dimensions \code{maxdim} from a total number of dimensions \code{dim}. 
 #'
@@ -72,6 +74,8 @@ generate.subspaces <- function(dim=20, mindim=2, maxdim=4, allowOverlap=FALSE) {
   subspaces
 }
 
+#' Replace a set of subspaces
+#' 
 #' Resample compatible subspaces to replace a set of subspaces.
 #' The new subspaces should not include or be included in another subspace from the original set. 
 #' @param dim Total number of dimensions from which to generate the subspaces.
@@ -89,8 +93,8 @@ generate.subspaces <- function(dim=20, mindim=2, maxdim=4, allowOverlap=FALSE) {
 #'
 #' @md
 #' @export
-replace.subspaces <- function(dim, subspaces, indexes, allowOverlap) {
-  # TODO: What about overlappings? I am not if I cannot refrain from overlapping there, might be difficult to change subspaces otherwise
+replace.subspaces <- function(dim, subspaces, indexes, allowOverlap=FALSE) {
+  # TODO: What about overlappings? I am not sure if I cannot refrain from overlapping there, might be difficult to change subspaces otherwise
   # no sanity check, assumed to be done already 
   indexes <- indexes[sample(1:length(indexes), replace=FALSE)] # shuffle it
   for(index in indexes) {
@@ -121,6 +125,8 @@ replace.subspaces <- function(dim, subspaces, indexes, allowOverlap) {
   subspaces
 }
 
+#' Generate margins
+#' 
 #' Sample valid margins for a list of subspaces (not used anymore)
 #' @param subspaces A list of generated subspaces.
 #' @param values A vector of valid values for subspace margins.
@@ -140,6 +146,8 @@ generate.margins <- function(subspaces, values=c(0.1,0.2,0.3,0.4,0.5,0.8,0.7,0.9
   sample(values, length(subspaces), replace=TRUE)
 }
 
+#' Generate a list of margins
+#' 
 #' Generate iteratively a list of margins for the same set of subspaces with a particular volatility (not used currently)
 #' @param subspaces A list of generated subspaces.
 #' @param nstep Number of steps for which we generate new margin values.
@@ -169,6 +177,8 @@ generate.marginslist <- function(subspaces, nstep=10, volatility=0.1, values=c(0
   marginslist
 }
 
+#' Generate iteratively a list of subspaces and margins (dynamic)
+#' 
 #' Generate iteratively a list of subspaces and margins based on the initial set of subspaces with a particular volatility
 #'
 #' @param dim Total number of dimensions from which to generate the subspaces.
@@ -222,6 +232,8 @@ generate.dynamic <- function(dim, subspaces, nstep=10, volatility=0.1, values=c(
   res
 }
 
+#' Valid stream configuration
+#' 
 #' Generate a valid stream configuration.
 #'
 #' @param dim Number of dimensions in the stream.
