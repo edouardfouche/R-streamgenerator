@@ -2,8 +2,7 @@
 % Please edit documentation in R/generateConfig.R
 \name{generate.subspaces}
 \alias{generate.subspaces}
-\title{Random generation of partly overlapping consecutive subspaces with a minimum number of dimensions \code{mindim}
-and a maximum number of dimensions \code{maxdim} from a total number of dimensions \code{dim}.}
+\title{Random generation of consecutive subspaces}
 \usage{
 generate.subspaces(dim = 20, mindim = 2, maxdim = 4,
   allowOverlap = FALSE)

@@ -49,7 +49,7 @@ generate.static.stream <- function(n=1000, prop=0.01, proptype="proportional", s
     stream.config <- generate.stream.config(nstep=1)
   } else {
     if(stream.config$nstep != 1) {
-      stop("The stream.config file in not compatible with static streams: nstep should be = 1")
+      stop("The stream.config file is not compatible with static streams: nstep should be = 1")
     }
   }
   dim <- stream.config$dim
