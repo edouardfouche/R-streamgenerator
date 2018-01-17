@@ -16,9 +16,9 @@ meta_cycle <- generate.dynamic(dim=20, subspaces=subspaces, nstep=10, volatility
 stream.config <- generate.stream.config(dim=10, nstep=1, mindim=2, maxdim=4, dependency="Wall", discretize=30, allowOverlap=FALSE)
 stream.config$subspaces
 ## Override the subspaces and margin
-subspaces <- list(c(1,2))#,c(3,4), c(5,6,7),c(8,9))
+subspaces <- list(c(1,2),c(3,4), c(5,6,7),c(8,9))
 stream.config$subspaces <- subspaces
-stream.config$margins <- c(0.9)#, 0.5, 0.7, 0.1)
+stream.config$margins <- c(0.9, 0.5, 0.7, 0.1)
 
 # Let's say we are not interested in outliers, so we set the prop to 0
 stream <- generate.static.stream(n=1000, prop=0.01, proptype="absolute", stream.config=stream.config)

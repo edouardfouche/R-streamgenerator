@@ -2,7 +2,7 @@
 % Please edit documentation in R/generateConfig.R
 \name{generate.margins}
 \alias{generate.margins}
-\title{Sample valid margins for a list of subspaces (not used currently)}
+\title{Sample valid margins for a list of subspaces (not used anymore)}
 \usage{
 generate.margins(subspaces, values = c(0.1, 0.2, 0.3, 0.4, 0.5, 0.8, 0.7,
   0.9))
@@ -16,7 +16,7 @@ generate.margins(subspaces, values = c(0.1, 0.2, 0.3, 0.4, 0.5, 0.8, 0.7,
 A vector containing margins values for each subspaces
 }
 \description{
-Sample valid margins for a list of subspaces (not used currently)
+Sample valid margins for a list of subspaces (not used anymore)
 }
 \examples{
 generate.margins(list(c(1,2,3), c(4,5), c(5,6)), values=c(0.1,0.2,0.3,0.4,0.5,0.8,0.7,0.9))

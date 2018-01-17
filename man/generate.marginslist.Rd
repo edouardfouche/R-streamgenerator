@@ -4,13 +4,13 @@
 \alias{generate.marginslist}
 \title{Generate iteratively a list of margins for the same set of subspaces with a particular volatility (not used currently)}
 \usage{
-generate.marginslist(subspaces, nsteps = 10, volatility = 0.1,
+generate.marginslist(subspaces, nstep = 10, volatility = 0.1,
   values = c(0.1, 0.2, 0.3, 0.4, 0.5, 0.8, 0.7, 0.9))
 }
 \arguments{
 \item{subspaces}{A list of generated subspaces.}
 
-\item{nsteps}{Number of steps for which we generate new margin values.}
+\item{nstep}{Number of steps for which we generate new margin values.}
 
 \item{volatility}{Percentage of subspaces to replace at each step.}
 
@@ -23,7 +23,7 @@ A list containing lists of margins for each step
 Generate iteratively a list of margins for the same set of subspaces with a particular volatility (not used currently)
 }
 \examples{
-generate.marginslist(list(c(1,2,3), c(4,5), c(5,6), c(7,8)), nsteps=3, volatility=0.5)
+generate.marginslist(list(c(1,2,3), c(4,5), c(5,6), c(7,8)), nstep=3, volatility=0.5)
 
 }
 \author{

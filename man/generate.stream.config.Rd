@@ -5,8 +5,8 @@
 \title{Generate a valid stream configuration.}
 \usage{
 generate.stream.config(dim = 20, mindim = 2, maxdim = 4, values = c(0.1,
-  0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9), nsteps = 10, cycle = 0,
-  volatility = 0.1)
+  0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9), nstep = 10, dependency = "Wall",
+  discretize = 0, cycle = 0, volatility = 0.1, allowOverlap = FALSE)
 }
 \arguments{
 \item{dim}{Number of dimensions in the stream.}
@@ -17,11 +17,17 @@ generate.stream.config(dim = 20, mindim = 2, maxdim = 4, values = c(0.1,
 
 \item{values}{A vector of valid values for subspace margins.}
 
-\item{nsteps}{Number of steps for which we generate new subspaces and margin values.}
+\item{nstep}{Number of steps for which we generate new subspaces and margin values.}
+
+\item{dependency}{Type of dependencies available in the stream, currently either "Wall" or "Square" or "Donut" (in the future: "Mixed")}
 
 \item{cycle}{Number of iterations to use to create a cyclic streams. If 0, then the stream has no cycle.}
 
 \item{volatility}{Proportion of subspaces to change at any step. Should be > 0 and <= 1. 1 means that all subspaces and margins at changed a each step}
+
+\item{allowOverlap}{States whether overlap between subspaces are allowed. (might be a bit more complex if TRUE.). Note that full overlap and subset relation are never allowed.}
+
+\item{decretize}{whether the output should be discrete or not. 0 means it is real. Any other number of discrete possible values. (10 is the minumum)}
 }
 \value{
 A stream.config object to be passed to a generate.dynamic.stream or generate.static.stream method
@@ -30,7 +36,7 @@ A stream.config object to be passed to a generate.dynamic.stream or generate.sta
 Generate a valid stream configuration.
 }
 \examples{
-stream.config <- generate.stream.config(dim=50, nsteps=10, volatility=0.5)
+stream.config <- generate.stream.config(dim=50, nstep=10, volatility=0.5)
 
 }
 \seealso{

@@ -4,15 +4,17 @@
 \alias{generate.dynamic.stream}
 \title{Generate Dynamic Data Stream}
 \usage{
-generate.dynamic.stream(n = 100, prop = 0.01, stream.config = NULL,
-  verbose = FALSE)
+generate.dynamic.stream(n = 100, prop = 0.01, proptype = "proportional",
+  stream.config = NULL, verbose = FALSE)
 }
 \arguments{
 \item{n}{A vector containing \code{x} values, where the values corresponds to the number of points for each step and \code{x} to the number of steps.}
 
 \item{prop}{Proportion of outliers in the hidden space.}
 
-\item{stream.config}{A stream configuration object. Should have been generated with \code{nsteps > 1}.}
+\item{proptype}{Type of the proportion of outliers. Value "proportional": depend on the size of the empty space. Value "absolute": same absolute proportion per subspace.}
+
+\item{stream.config}{A stream configuration object. Should have been generated with \code{nstep > 1}.}
 
 \item{verbose}{If TRUE, then the state of the stream will be printed as output for every 100 points.}
 }
@@ -30,18 +32,19 @@ A an object of class \code{stream}, which is a \code{List} of 5 elements.
 Generate a new synthetic multidimensional dynamic data stream having the desired properties.
 }
 \details{
-The data is generated uniformly, except in certain subspaces where the data is concentrated on the axes,
-in the L-like shape. This should create spaces with high dependency and space to observe hidden outliers.
+The data is generated uniformly, except in certain subspaces where the data is concentrated in particular
+dependencies (i.e. in the "Wall" dependency, data concentrates on the axes, in a L-like shape).
+This should create spaces with high dependency and space to observe hidden outliers.
 Note that the proportion of outlier \code{prop} does not relate directly to the percentage of outliers
-in the output stream. Since it corresponds to the probability of a point, being already in the hidden space
+in the output stream. Since it corresponds to the probability of a point, being ALREADY in the hidden space
 to stay where it is, the overall proportion of outliers depends on the hidden space volume, which depends
-on the number of subspaces and their margins.
+on the number of subspaces and their margins. The greater the margin, the bigger the hidden space.
 }
 \examples{
 # Generate a stream with default parameters 
 stream <- generate.dynamic.stream()
 # Generate a stream with custom configuration
-stream.config <- generate.stream.config(dim=50, nsteps=10, volatility=0.5)
+stream.config <- generate.stream.config(dim=50, nstep=10, volatility=0.5)
 stream <- generate.dynamic.stream(n=100, prop=0.05, stream.config=stream.config)
 # Output stream results (to uncomment)
 # output.stream(stream, "example")
