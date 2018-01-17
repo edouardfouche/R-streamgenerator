@@ -36,19 +36,15 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
   isInHiddenSpace.Wall <- function(row, subspace) {all(row[subspaces[[subspace]]] > 1-margins[[subspace]])}
   isInHiddenSpace.Square <- function(row, subspace) {all(abs(row[subspaces[[subspace]]]-0.5) < margins[[subspace]]/2)}
   isInHiddenSpace.Donut <- function(row, subspace) {sqrt(sum((row[subspaces[[subspace]]]-0.5)**2)) < margins[[subspace]]/2 | sqrt(sum((row[subspaces[[subspace]]]-0.5)**2)) > 0.5}
-
-  #to ensure that the point falls into the range [0;1] we normalize it 
-  #the point belongs to the hidden space if it: point> noise/2 or point<-noise/2
-  #noise = 1- margin
   isInHiddenSpace.Linear <-function(row, subspace) {
-    res <- row[subspaces[[subspace]]]
-    #add to the point random deviates, wich are uniform distributed on the interval from min =-noise/2 to max=noise/2
-    res <- res +  runif(dim, min=-(1-margins[[subspace]])/2, max=(1-margins[[subspace]])/2) 
-    # normalize
-    res <- (res - (-(1-margins[[subspace]])/2)) / (1+(1-margins[[subspace]])/2 - (-(1-margins[[subspace]])/2)) 
-    #expression is equal to: all(abs(res-0.5) < margins[[subspace]]/2)
-    all((res > (1-margins[[subspace]])/2) | (res < -(1-margins[[subspace]])/2))
-    res
+    p <- row[subspaces[[subspace]]]
+    b <- rep(1, length(p))
+    # https://en.wikipedia.org/wiki/Vector_projection
+    a1 <- sum(p*(b/sqrt(length(b))))
+    va1 <- a1 * (b/sqrt(length(b)))
+    vd <- p-va1
+    d <- sqrt(sum(vd**2))
+    d > 0.5 - margins[subspace]/2
   }
   
   ensureOutlyingBehavior.Wall <- function(row, subspace) row[subspaces[[subspace]]] + (1-row[subspaces[[subspace]]])*0.2
@@ -70,18 +66,17 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
   }
   
   ensureOutlyingBehavior.Linear <- function(row, subspace){
-    res <- row[subspaces[[subspace]]]
-    #add random deviates, wich are uniform distributed on the interval from min =-noise/2 to max=noise/2
-    res <- res +  runif(dim, min=-(1-margins[[subspace]])/2, max=(1-margins[[subspace]])/2) 
-    # normalize
-    res <- (res - (-(1-margins[[subspace]])/2)) / (1+(1-margins[[subspace]])/2 - (-(1-margins[[subspace]])/2)) 
-    
-    if(abs(res-0.5) < margins[[subspace]]/2) {
-      transf_res <- res-0.5
-      transf_res <- transf_res * ((margins[[subspace]]/2)-(margins[[subspace]]/2)*0.2) / (margins[[subspace]]/2)
-      transf_res + 0.5
+    d <- 0 # Note: This way is a bit suboptimal but it avoids points at the really border at least. 
+    while(!(d > 0.5 - (margins[subspace]*0.8)/2)) {
+      p <- runif(length(row[subspaces[[subspace]]]))
+      b <- rep(1, length(p))
+      # https://en.wikipedia.org/wiki/Vector_projection
+      a1 <- sum(p*(b/sqrt(length(b))))
+      va1 <- a1 * (b/sqrt(length(b)))
+      vd <- p-va1
+      d <- sqrt(sum(vd**2))
     }
-    res
+    p
   }
   
   
@@ -162,7 +157,7 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
       } else if(dependency == "Donut") {
         outlierFlags[x] <- (sqrt(sum((r[subspaces[[x]]]-0.5)**2)) < margins[[x]]/2 - sqrt(((1/(discretize-1))**2)*2)/2) | (sqrt(sum((r[subspaces[[x]]]-0.5)**2)) > 0.5+sqrt(((1/(discretize-1))**2)*2)/2)
       } else if (dependency == "Linear"){
-        outlierFlag [x] <- all((res > ((1-margins[[subspace]])-(1/(discretize-1)))/2) | res < -((1-margins[[subspace]] -(1/(discretize-1)))/2)) 
+        outlierFlags[x] <- isInHiddenSpace.Linear(r,x)
       } else {
         stop("Currently unsupported dependency type")
       }
@@ -180,7 +175,7 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
       } else if(dependency == "Donut") {
         outlierFlags[x] <- sqrt(sum((r[subspaces[[x]]]-0.5)**2)) < margins[[x]]/2 | sqrt(sum((r[subspaces[[x]]]-0.5)**2)) > 0.5
       } else if (dependency == "Linear") {
-        outlierFlags[x] <- all((res > (1-margins[[subspace]])/2) | (res < -(1-margins[[subspace]])/2))
+        outlierFlags[x] <- isInHiddenSpace.Linear(r,x)
       } else {
         stop("Currently unsupported dependency type")
       }

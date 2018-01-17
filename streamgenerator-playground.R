@@ -13,7 +13,7 @@ meta <- generate.dynamic(dim=20, subspaces=subspaces, nstep=3, volatility=0.5)
 meta_cycle <- generate.dynamic(dim=20, subspaces=subspaces, nstep=10, volatility=0.5, cycle=3)
 
 ### Generate a static stream with some dependencies on choosen subspaces
-stream.config <- generate.stream.config(dim=10, nstep=1, mindim=2, maxdim=4, dependency="Wall", discretize=30, allowOverlap=FALSE)
+stream.config <- generate.stream.config(dim=10, nstep=1, mindim=2, maxdim=4, dependency="Linear", discretize=0, allowOverlap=FALSE)
 stream.config$subspaces
 ## Override the subspaces and margin
 subspaces <- list(c(1,2),c(3,4), c(5,6,7),c(8,9))
