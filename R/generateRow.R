@@ -37,15 +37,109 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
   isInHiddenSpace.Square <- function(row, subspace) {all(abs(row[subspaces[[subspace]]]-0.5) < margins[[subspace]]/2)}
   isInHiddenSpace.Donut <- function(row, subspace) {sqrt(sum((row[subspaces[[subspace]]]-0.5)**2)) < margins[[subspace]]/2 | sqrt(sum((row[subspaces[[subspace]]]-0.5)**2)) > 0.5}
   isInHiddenSpace.Linear <-function(row, subspace) {
+    # p is the vector to be projected onto b
     p <- row[subspaces[[subspace]]]
+    # b is only defined to be in the "1-point". No possibility for a variation of b is defined as of yet
     b <- rep(1, length(p))
     # https://en.wikipedia.org/wiki/Vector_projection
-    a1 <- sum(p*(b/sqrt(length(b))))
+    # scalar projection a1
+    a1 <- sum(p*(b/sqrt(length(b))))  # does this even generalize to other b?? Well it does genereralize to higher-dimensional "1-points"...
+    # vector projection va1
     va1 <- a1 * (b/sqrt(length(b)))
-    vd <- p-va1
+    # difference vd // on wikipedia this is called the vector reflection a2
+    vd <- p - va1 
+    # distance d from vector projection va1 to point p
     d <- sqrt(sum(vd**2))
-    d > 0.5 - margins[subspace]/2
+    d > 0.5 - margins[[subspace]]/2  # is this correct for higher dimensions? Is this even correct for 2 dimensions??
   }
+  isInHiddenSpace.Cross2D <- function(row, subspace) {
+      # basically we use the vector projection and vector projection
+      # similar to the linear case. We call "1-point"-vector b
+      # [e.g. (0, ..., 0) -> (1, ..., 1)] and we shall call the orthogonal
+      # vector c. We can check for distance to c via the vector projection.
+      # If va1's distance to the middle of b is greater than half of the margin,
+      # the point is considered to be in the hidden space with regards to c.
+      # The crossing of b with it's orthogonal vector / hyperplane(?) defining the
+      # 'cross' will be called m.
+      p <- row[subspaces[[subspace]]]
+      b <- rep(1, length(p))
+      a1 <- sum(p*(b/sqrt(length(b))))
+      va1 <- a1 * (b/sqrt(length(b)))
+      # vd = a2
+      vd <- p - va1
+      # check if point is in hidden space with regards to b
+      d <- sqrt(sum(vd**2))
+      result.b <- d > 0.5 - margins[[subspace]]/2  # is this correct for higher dimensions?
+      # check if point is in hidden space with regards to c
+      m <-  b / 2 # midpoint, halfway to b
+      diff <- m - va1
+      v_diff <- sqrt(sum(diff**2))
+
+      result.c <- v_diff > 0.5 - margins[[subspace]] / 2
+      result.b & result.c
+  }
+  isInHiddenSpace.Cross <- function(row, subspace, marginFactor = 1) {
+      # We need to calculate the vector projection and rejection for all diagonals inside a
+      # (hyper-)cube. For a square (2D case), we need to place the points with regards to the following vectors:
+      # (0,0) -> (1,1) and (1,0) -> (0,1) [actually also (0,1) -> (1,0)]
+      # For a cube we have:
+      # (0,0,0) -> (1,1,1), (0,1,0) -> (1,0,1), (1,0,0) -> (0,1,1) and (0,0,1) -> (1,1,0)
+      # We thus have n+1 diagonals which we need to consider (diagonals go from a point on
+      # an axis (i.e. there is at most a singel 1 in the starting vector)
+      # to it's opposiong point in the unit hypercube --> Swap all 0's and 1's
+      # 
+      # Using only the diagonals allows us to create the cross shape for arbitrary subspaces if we
+      # only plot two dimensions of this subspace. Placing the outliers requires us to consider every
+      # diagonal.
+      getVectorProjectionOnDiagonal <- function(start, end, point) {
+        diagonal <- end - start
+        result <- c(va1=numeric(0), va2=numeric(0))
+        result$va1 <- sum((point-start) * (diagonal/sqrt(length(diagonal)))) * (diagonal/sqrt(length(diagonal)))
+        result$va2 <- (point-start) - result$va1
+        result
+      } 
+      getEuklidLen <- function(vec) {
+        sqrt(sum(vec**2))
+      }
+      createOppositePoint <- function(start) {
+        # Opposite points basically means mirrored aorund (0.5, 0.5)
+        (start - 0.5) * (-1) + 0.5
+      }
+      createDiagList <- function(n=2) {
+        result <- c(starts=vector("list", (n+1)), ends=vector("list", (n+1)))
+        result$starts[[1]] <- rep(0, n)
+        result$ends[[1]] <- rep(1, n)
+        for (i in 2:(n+1)) {
+          result$starts[[i]] <- rep(0, n)
+          result$starts[[i]][[i-1]] <- 1
+          result$ends[[i]] <- createOppositePoint(result$starts[[i]])
+        }
+        result
+      }
+#      if(marginFactor != 1) { browser() }
+      point <- row[subspaces[[subspace]]]
+      if(marginFactor != 1) {point <- row}
+      n <- length(subspaces[[subspace]])
+      diagonals.list <- createDiagList(n)
+      # T.B.D.
+      diagonals.projections <- vector("list", (n+1))
+      diffs <- vector("list", (n+1))
+      for (i in 1:(n+1)) {
+        diagonals.projections[[i]] <- getVectorProjectionOnDiagonal(diagonals.list$starts[[i]],
+                                                                  diagonals.list$ends[[i]],
+                                                                  point);
+        diffs[i] <- getEuklidLen(diagonals.projections[[i]]$va2)
+      }
+      gg <- all(diffs > 0.5 - (margins[[subspace]]*marginFactor)/2)
+#      if (length(subspaces[[subspace]]) == 2) {browser()}
+      gg
+  }
+
+  #isInHiddenSPace.Sine <- function(row, subspace) {
+      #p <- row[subspaces[[subspace]]]
+      #opt <- function(point)
+
+   
   
   ensureOutlyingBehavior.Wall <- function(row, subspace) row[subspaces[[subspace]]] + (1-row[subspaces[[subspace]]])*0.2
   ensureOutlyingBehavior.Square <- function(row, subspace) {
@@ -67,7 +161,7 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
   
   ensureOutlyingBehavior.Linear <- function(row, subspace){
     d <- 0 # Note: This way is a bit suboptimal but it avoids points at the really border at least. 
-    while(!(d > 0.5 - (margins[subspace]*0.8)/2)) {
+    while(!(d > 0.5 - (margins[[subspace]]*0.8)/2)) {
       p <- runif(length(row[subspaces[[subspace]]]))
       b <- rep(1, length(p))
       # https://en.wikipedia.org/wiki/Vector_projection
@@ -75,6 +169,15 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
       va1 <- a1 * (b/sqrt(length(b)))
       vd <- p-va1
       d <- sqrt(sum(vd**2))
+    }
+    p
+  }
+
+  ensureOutlyingBehavior.Cross <- function(row, subspace){
+    d <- FALSE # Note: This way is a bit suboptimal but it avoids points at the really border at least. 
+    while(!d) {
+      p <- runif(length(row[subspaces[[subspace]]]))
+      d <- isInHiddenSpace(p, subspace, marginFactor = 0.8)
     }
     p
   }
@@ -96,6 +199,9 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
     } else if (dependency == "Linear") {
       isInHiddenSpace <- isInHiddenSpace.Linear
       ensureOutlyingBehavior <- ensureOutlyingBehavior.Linear 
+    } else if (dependency == "Cross") {
+      isInHiddenSpace <- isInHiddenSpace.Cross
+      ensureOutlyingBehavior <- ensureOutlyingBehavior.Cross 
     } else {
       stop("Currently unsupported dependency type")
     }
@@ -158,6 +264,8 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
         outlierFlags[x] <- (sqrt(sum((r[subspaces[[x]]]-0.5)**2)) < margins[[x]]/2 - sqrt(((1/(discretize-1))**2)*2)/2) | (sqrt(sum((r[subspaces[[x]]]-0.5)**2)) > 0.5+sqrt(((1/(discretize-1))**2)*2)/2)
       } else if (dependency == "Linear"){
         outlierFlags[x] <- isInHiddenSpace.Linear(r,x)
+      } else if (dependency == "Cross"){
+        outlierFlags[x] <- isInHiddenSpace.Cross(r,x)
       } else {
         stop("Currently unsupported dependency type")
       }
@@ -176,6 +284,8 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
         outlierFlags[x] <- sqrt(sum((r[subspaces[[x]]]-0.5)**2)) < margins[[x]]/2 | sqrt(sum((r[subspaces[[x]]]-0.5)**2)) > 0.5
       } else if (dependency == "Linear") {
         outlierFlags[x] <- isInHiddenSpace.Linear(r,x)
+      } else if (dependency == "Cross") {
+        outlierFlags[x] <- isInHiddenSpace.Cross(r,x)
       } else {
         stop("Currently unsupported dependency type")
       }
