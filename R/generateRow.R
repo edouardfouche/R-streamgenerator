@@ -1,27 +1,27 @@
-#' Generate a raw with statistical properties
+#' Generate a row with statistical properties
 #'
-#' @param dim Number of dimension of the generated vector
-#' @param subspaces List of subspaces that contain a dependency.
-#' @param margins List of margins that correspond to each subspace.
-#' @param dependency Type of dependency for the subspaces (We don't support 'mixed') currently 
-#' @param prop Probability of a point belonging to the hidden space of a subspace to become an outlier.
-#' @param proptype Type of the proportion of outliers. Value "proportional": depend on the size of the empty space. Value "absolute": same absolute proportion per subspace. 
+#' @param dim Number of dimensions of the generated vector
+#' @param subspaces List of subspaces that contain a dependency
+#' @param margins List of margins that correspond to each subspace
+#' @param dependency Type of dependency for the subspaces (We don't support 'mixed' currently)
+#' @param prop Probability of a point belonging to the hidden space of a subspace to become an outlier
+#' @param proptype Type of the proportion of outliers. Value "proportional": depends on the size of the empty space. Value "absolute": same absolute proportion per subspace. 
 #'
 #' @return A list with 2 elements where \code{data} contains the generated vector and \code{labels} the corresponding label.
 #
 #' @details
-#' The row is at first drawn from the uniform distribution between 0 and 1 over each dimension
+#' The row is at first drawn from the uniform distribution between 0 and 1 over each dimension.
 #' For each subspace in \code{subspaces}, if the point belongs to the hidden space of the specified dependency 
 #' (i.e. for the "Wall", the value for each dimension of the subspace if bigger than the 1-margin), 
-#' then it becomes an outlier with probability \code{prop}. If it is an outlier, it would stay in the hidden space 
-#' and we make sure it is not too close from the border by rescaling the value so that it is at least 10% of the hidden space away from it. 
-#' If it is not an outlier, we map uniformly the point to the dependencies (i.e. for "Wall", one of the axis or center (for a 3-D dimensions))
-#' The probability to be mapped to one of such element is determined by their volume
+#' it then becomes an outlier with probability \code{prop}. If it is an outlier, it would stay in the hidden space 
+#' and we make sure it is not too close to the border by rescaling the value so that it is at least 10% of the hidden space away from it. 
+#' If it is not an outlier, we map uniformly the point to the dependencies (i.e. for "Wall", one of the axis or center (for a 3-D dimensions)).
+#' The probability to be mapped to one of such element is determined by their volume.
 #' The bigger the area, the more likely the point will be mapped to the area. 
-#' In the case a point is already an outlier in a subspace, it cannot become and outlier in an overlapping subspace
-#' But it still has the same probability to become an outlier in another space. This appends occasionally (pigeonhole principle)
+#' In the case a point is already an outlier in a subspace, it cannot become an outlier in an overlapping subspace
+#' but it still has the same probability to become an outlier in another space. This appends occasionally (pigeonhole principle)
 #'
-#' If the point if not an outlier, it will have \code{0} as label, otherwise, it has a string representing the different subspaces
+#' If the point is not an outlier, it will have \code{0} as label, otherwise it has a string representing the different subspaces.
 #'
 #' @author Edouard Fouché, \email{edouard.fouche@kit.edu}
 #'
@@ -37,63 +37,19 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
   isInHiddenSpace.Square <- function(row, subspace) {all(abs(row[subspaces[[subspace]]]-0.5) < margins[[subspace]]/2)}
   isInHiddenSpace.Donut <- function(row, subspace) {sqrt(sum((row[subspaces[[subspace]]]-0.5)**2)) < margins[[subspace]]/2 | sqrt(sum((row[subspaces[[subspace]]]-0.5)**2)) > 0.5}
   isInHiddenSpace.Linear <-function(row, subspace) {
-    # p is the vector to be projected onto b
     p <- row[subspaces[[subspace]]]
-    # b is only defined to be in the "1-point". No possibility for a variation of b is defined as of yet
     b <- rep(1, length(p))
     # https://en.wikipedia.org/wiki/Vector_projection
-    # scalar projection a1
-    a1 <- sum(p*(b/sqrt(length(b))))  # does this even generalize to other b?? Well it does genereralize to higher-dimensional "1-points"...
-    # vector projection va1
+    a1 <- sum(p*(b/sqrt(length(b))))
     va1 <- a1 * (b/sqrt(length(b)))
-    # difference vd // on wikipedia this is called the vector reflection a2
     vd <- p - va1 
-    # distance d from vector projection va1 to point p
     d <- sqrt(sum(vd**2))
-    d > 0.5 - margins[[subspace]]/2  # is this correct for higher dimensions? Is this even correct for 2 dimensions??
-  }
-  isInHiddenSpace.Cross2D <- function(row, subspace) {
-      # basically we use the vector projection and vector projection
-      # similar to the linear case. We call "1-point"-vector b
-      # [e.g. (0, ..., 0) -> (1, ..., 1)] and we shall call the orthogonal
-      # vector c. We can check for distance to c via the vector projection.
-      # If va1's distance to the middle of b is greater than half of the margin,
-      # the point is considered to be in the hidden space with regards to c.
-      # The crossing of b with it's orthogonal vector / hyperplane(?) defining the
-      # 'cross' will be called m.
-      p <- row[subspaces[[subspace]]]
-      b <- rep(1, length(p))
-      a1 <- sum(p*(b/sqrt(length(b))))
-      va1 <- a1 * (b/sqrt(length(b)))
-      # vd = a2
-      vd <- p - va1
-      # check if point is in hidden space with regards to b
-      d <- sqrt(sum(vd**2))
-      result.b <- d > 0.5 - margins[[subspace]]/2  # is this correct for higher dimensions?
-      # check if point is in hidden space with regards to c
-      m <-  b / 2 # midpoint, halfway to b
-      diff <- m - va1
-      v_diff <- sqrt(sum(diff**2))
-
-      result.c <- v_diff > 0.5 - margins[[subspace]] / 2
-      result.b & result.c
+    d > 0.5 - margins[[subspace]]/2
   }
   isInHiddenSpace.Cross <- function(row, subspace, marginFactor = 1) {
-      # We need to calculate the vector projection and rejection for all diagonals inside a
-      # (hyper-)cube. For a square (2D case), we need to place the points with regards to the following vectors:
-      # (0,0) -> (1,1) and (1,0) -> (0,1) [actually also (0,1) -> (1,0)]
-      # For a cube we have:
-      # (0,0,0) -> (1,1,1), (0,1,0) -> (1,0,1), (1,0,0) -> (0,1,1) and (0,0,1) -> (1,1,0)
-      # We thus have n+1 diagonals which we need to consider (diagonals go from a point on
-      # an axis (i.e. there is at most a singel 1 in the starting vector)
-      # to it's opposiong point in the unit hypercube --> Swap all 0's and 1's
-      # 
-      # Using only the diagonals allows us to create the cross shape for arbitrary subspaces if we
-      # only plot two dimensions of this subspace. Placing the outliers requires us to consider every
-      # diagonal.
       getVectorProjectionOnDiagonal <- function(start, end, point) {
         diagonal <- end - start
-        result <- c(va1=numeric(0), va2=numeric(0))
+        result <- list(va1=numeric(0), va2=numeric(0))
         result$va1 <- sum((point-start) * (diagonal/sqrt(length(diagonal)))) * (diagonal/sqrt(length(diagonal)))
         result$va2 <- (point-start) - result$va1
         result
@@ -116,9 +72,8 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
         }
         result
       }
-#      if(marginFactor != 1) { browser() }
       point <- row[subspaces[[subspace]]]
-      if(marginFactor != 1) {point <- row}
+      if (marginFactor != 1) {point <- row}
       n <- length(subspaces[[subspace]])
       diagonals.list <- createDiagList(n)
       # T.B.D.
@@ -130,17 +85,9 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
                                                                   point);
         diffs[i] <- getEuklidLen(diagonals.projections[[i]]$va2)
       }
-      gg <- all(diffs > 0.5 - (margins[[subspace]]*marginFactor)/2)
-#      if (length(subspaces[[subspace]]) == 2) {browser()}
-      gg
+      all(diffs > 0.5 - (margins[[subspace]]*marginFactor)/2)
   }
 
-  #isInHiddenSPace.Sine <- function(row, subspace) {
-      #p <- row[subspaces[[subspace]]]
-      #opt <- function(point)
-
-   
-  
   ensureOutlyingBehavior.Wall <- function(row, subspace) row[subspaces[[subspace]]] + (1-row[subspaces[[subspace]]])*0.2
   ensureOutlyingBehavior.Square <- function(row, subspace) {
     transformed_r <- row[subspaces[[subspace]]]-0.5
@@ -158,7 +105,6 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
     }
     res
   }
-  
   ensureOutlyingBehavior.Linear <- function(row, subspace){
     d <- 0 # Note: This way is a bit suboptimal but it avoids points at the really border at least. 
     while(!(d > 0.5 - (margins[[subspace]]*0.8)/2)) {
@@ -172,9 +118,8 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
     }
     p
   }
-
   ensureOutlyingBehavior.Cross <- function(row, subspace){
-    d <- FALSE # Note: This way is a bit suboptimal but it avoids points at the really border at least. 
+    d <- FALSE 
     while(!d) {
       p <- runif(length(row[subspaces[[subspace]]]))
       d <- isInHiddenSpace(p, subspace, marginFactor = 0.8)
@@ -206,18 +151,18 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
       stop("Currently unsupported dependency type")
     }
     
-    # Do something only if the point is already in the hidden space OR the proportion of outlier is absolute. 
+    # Do something only if the point is already in the hidden space OR the proportion of outliers is absolute. 
     if(isInHiddenSpace(r, s) || (proptype=="absolute")) { 
       # Do something only if the point is not already an outlier in any other subspace that has non-empty intersection 
       # If this is the case, we might destroy his outlying behavior in the other subspace, which we want to avoid. 
       if(!any(lapply(subspaces[outlierFlags], function(y) length(intersect(subspaces[[s]],y))) > 0)) {
         outlierFlags[s] <- sample(c(TRUE,FALSE),1,prob=c(prop,1-prop)) # Choose if it is an outlier in this subspace, with probability prob
-        if(!outlierFlags[s]) { # If we decide not to make an outlier out of it, regenerate it outside from the hidden region 
+        if(!outlierFlags[s]) { # If we decide not to make an outlier out of it, regenerate it outside of the hidden region 
           while(isInHiddenSpace(r, s)) {
             r[subspaces[[s]]] <- runif(length(subspaces[[s]])) 
           }
         } else {
-          # Just to make sure we don't go in an infinite loop in the case the margin is too small. 
+          # Just to make sure we don't go in an infinite loop in case the margin is too small. 
           if(margins[[s]] >= 0.1) { 
             while(!isInHiddenSpace(r, s)) {
               r[subspaces[[s]]] <- runif(length(subspaces[[s]])) 
@@ -309,10 +254,10 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
 
 
 
-#'  Helper function that generate multiple rows
+#'  Helper function that generates multiple rows.
 #' 
-#' Helper function that generate multiple rows with the same characteristics
-#' Useful to generate a static stream
+#' Helper function that generates multiple rows with the same characteristics.
+#' Useful to generate a static stream.
 #'
 #' @param n Number of rows to generate.
 #' @param dim Number of dimension of the vector generate.
