@@ -127,6 +127,7 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
               j <- j + 1
             }
           result
+        }
       }
       createHOPLines <- function(n=2) {
           # The hourglass lines are the vectors between a corner of the
