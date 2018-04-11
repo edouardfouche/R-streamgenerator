@@ -88,7 +88,7 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
       all(diffs > 0.5 - (margins[[subspace]]*marginFactor)/2)
   }
   isInHiddenSpace.Hourglass <- function(row, subspace, marginFactor = 1) {
-      getVectorProjectionOnDiagonal <- function(start, end, point) {
+      getVectorProjection <- function(start, end, point) {
         diagonal <- end - start
         result <- list(va1=numeric(0), va2=numeric(0))
         result$va1 <- sum((point-start) * (diagonal/sqrt(length(diagonal)))) * (diagonal/sqrt(length(diagonal)))
@@ -102,53 +102,61 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
         # Opposite point basically means mirrored aorund (0.5, 0.5)
         (start - 0.5) * (-1) + 0.5
       }
-      #createDiagList <- function(n=2) {
-        #result <- c(starts=vector("list", (n+1)), ends=vector("list", (n+1)))
-        #result$starts[[1]] <- rep(0, n)
-        #result$ends[[1]] <- rep(1, n)
-        #for (i in 2:(n+1)) {
-          #result$starts[[i]] <- rep(0, n)
-          #result$starts[[i]][[i-1]] <- 1
-          #result$ends[[i]] <- createOppositePoint(result$starts[[i]])
-        #}
-        #result
-      #}
-      getHOPs <- function(start, n, oppDim) {
-          result <- vector("list", (2^(n-1)))
-          indices <- c(1:(oppDim-1), (oppDim+1):n)
-          oppValue <- createOppositePoint(start[[oppDim]])
-          k <- 1
-          for (i in indices) {
-            j <- i
-            while (j <= n) {
-              result[[k]] <- c(rep(1, j), rep(0, (n-j)))
-              result[[k]][[oppDim]] <- oppValue
-              k <- k + 1
-              j <- j + 1
-            }
-          result
+      getCorners <- function(n) {
+        # create all corners via expand.grid
+        arguments <- vector("list", n)  # arguments for expand.grid
+        for (i in 1:n) {
+          arguments[[i]] <- c(0,1)
         }
+        corners <- expand.grid(arguments)
+        result <- vector("list", nrow(corners))
+        for (i in 1:nrow(corners)) {
+          result[[i]] <- as.vector(corners[i,], mode="integer")
+        }
+        result
+      }
+      # TODO remove code duplicate above and below
+      getHOPs <- function(start, n, oppDim) {
+        # create all corners via expand.grid
+        arguments <- vector("list", n)  # arguments for expand.grid
+        for (i in 1:n) {
+          arguments[[i]] <- c(0,1)
+        }
+        corners <- expand.grid(arguments)
+        # create the "oppValue" for the desired dimension (oppDim)
+        oppValue <- createOppositePoint(start[[oppDim]])
+        # replace the value of the oppDim of all corners
+        for (i in 1:nrow(corners)) {
+          corners[i,][oppDim] <- oppValue
+        }
+        # remove duplicates
+        corners <- unique(corners)
+        # rename rows and transform to a list of vectors
+        rownames(corners) <- 1:nrow(corners)
+        result <- vector("list", nrow(corners))
+        for (i in 1:nrow(corners)) {
+          result[[i]] <- as.vector(corners[i,], mode="integer")
+        }
+        result
       }
       createHOPLines <- function(n=2) {
-          # The hourglass lines are the vectors between a corner of the
-          # hypercube and its ``HOPs'' (Hourglass Opposing Points). A HOP can be
-          # any other corner of the hypercube other than the starting point as long
-          # as the value of a pre-specified dimension is different (by only using
-          # the corners, the values in question can only be either 0 or 1).
-          #
-          # Example: Assume we have a 3D Hourglass. 
-          # We thus have vectors (x,y,z). For finding the HOPs of a corner, we
-          # want x to be the opposite. Thus, the point (0,0,0) would have the following HOPs:
-          # (1,0,0), (1,1,0), (1,0,1) and (1,1,1)
-          # 
-          # In general we have 2^(n-1) HOPs per corner in a n-dimensional hypercube.
-        result <- c(starts=vector("list", (n+1)), endList=vector("list", (n+1)))
-        result$starts[[1]] <- rep(0, n)
-        result$endList[[1]] <- getHOPs(result$starts[[1]], n, 1)
-        for (i in 2:(n+1)) {
-          result$starts[[i]] <- rep(0, n)
-          result$starts[[i]][[i-1]] <- 1
-          result$endList[[i]] <- getHOPs(result$starts[[i]], n, (i-1))
+        # The hourglass lines are the vectors between a corner of the
+        # hypercube and its ``HOPs'' (Hourglass Opposing Points). A HOP can be
+        # any other corner of the hypercube other than the starting point as long
+        # as the value of a pre-specified dimension is different (by only using
+        # the corners, the values in question can only be either 0 or 1).
+        #
+        # Example: Assume we have a 3D Hourglass. 
+        # We thus have vectors (x,y,z). For finding the HOPs of a corner, we
+        # want x to be the opposite. Thus, the point (0,0,0) would have the following HOPs:
+        # (1,0,0), (1,1,0), (1,0,1) and (1,1,1)
+        # 
+        # In general we have 2^(n-1) HOPs per corner in a n-dimensional hypercube.
+        corners <- getCorners(n)
+        result = vector("list", length(corners))
+        for (i in 1:length(corners)) {
+          result[[i]][["starts"]] <- corners[[i]]
+          result[[i]][["endList"]] <- getHOPs(result[[i]][["starts"]], n, 1)
         }
         result
       }
@@ -156,22 +164,28 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
       point <- row[subspaces[[subspace]]]  # only look at the relevant subspace
       if (marginFactor != 1) {point <- row}  # assume call from ensureOutlyingBehavior
       n <- length(subspaces[[subspace]])
-      diagonals.list <- createHOPLines(n)
-      # T.B.D.
-      diagonals.projections <- vector("list", length(diagonals.list))
-      diffs <- vector("list", (length(diagonals.list)*(2^(n-1))))
+      line.list <- createHOPLines(n)
+      numberOfCorners <- length(line.list)
+      numberOfHOPs <- length(line.list[[1]][["endList"]])
+      line.projections <- vector("list", length(line.list))
+      diffs <- vector("list", (numberOfCorners * numberOfHOPs))
       k <- 1
-      for (i in 1:length(diagonals.list)) {
-          digonals.projections[[i]] <- vector("list", (2^(n-1)))
-        for ( j in 1:(2^(n-1)))  {
-          diagonals.projections[[i]][[j]] <- getVectorProjectionOnDiagonal(diagonals.list$starts[[i]],
-                                                                      diagonals.list$ends[[i]][[j]],
-                                                                      point);
-          diffs[k] <- getEuklidLen(diagonals.projections[[i]][[j]]$va2)
+      for (i in 1:numberOfCorners) {
+          line.projections[[i]] <- vector("list", numberOfHOPs)
+        for (j in 1:numberOfHOPs) {
+          line.projections[[i]][[j]] <- getVectorProjection(line.list[[i]][["starts"]],
+                                                            line.list[[i]][["endList"]][[j]],
+                                                            point)
+          diffs[k] <- getEuklidLen(line.projections[[i]][[j]]$va2)
           k <- k + 1
         }
       }
-      all(diffs > 0.5 - (margins[[subspace]]*marginFactor)/2)
+      all(diffs > 0.5 - ((margins[[subspace]]*marginFactor)/2))
+  }
+  isInHiddenSpace.HG <- function(row, subspace, marginFactor = 1) {
+    res1 <- isInHiddenSpace.Wall(row, subspace)
+    res2 <- isInHiddenSpace.Cross(row, subspace, marginFactor = marginFactor)
+    all(res1 & res2)
   }
 
 
@@ -221,6 +235,14 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
     }
     p
   }
+  ensureOutlyingBehavior.HG <- function(row, subspace) {
+      d <- FALSE
+      while(!d) {
+          p <- runif(length(row(subspaces[[subspace]])))
+          d <- isInHiddenSpace(p, subspace, marginFactor=0.8)
+      }
+      p
+  }
   
   
   outlierFlags <- rep(FALSE, length(subspaces))
@@ -245,6 +267,9 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
     } else if (dependency == "Hourglass") {
       isInHiddenSpace <- isInHiddenSpace.Hourglass
       ensureOutlyingBehavior <- ensureOutlyingBehavior.Hourglass
+    } else if (dependency == "HG") {
+      isInHiddenSpace <- isInHiddenSpace.HG
+      ensureOutlyingBehavior <- ensureOutlyingBehavior.HG
     } else {
       stop("Currently unsupported dependency type")
     }
@@ -311,6 +336,8 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
         outlierFlags[x] <- isInHiddenSpace.Cross(r,x)
       } else if (dependency == "Hourglass") {
         outlierFlags[x] <- isInHiddenSpace.Hourglass(r,x)
+      } else if (dependency == "HG") {
+        outlierFlags[x] <- isInHiddenSpace.HG(r,x)
       } else {
         stop("Currently unsupported dependency type")
       }
@@ -333,6 +360,8 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
         outlierFlags[x] <- isInHiddenSpace.Cross(r,x)
       } else if (dependency == "Hourglass") {
         outlierFlags[x] <- isInHiddenSpace.Hourglass(r,x)
+      } else if (dependency == "HG") {
+        outlierFlags[x] <- isInHiddenSpace.HG(r,x)
       } else {
         stop("Currently unsupported dependency type")
       }
@@ -380,6 +409,7 @@ generate.multiple.rows <- function(n, dim, subspaces, margins, dependency, prop,
     res <- generate.row(dim=dim, subspaces=subspaces, margins=margins, dependency=dependency, prop=prop, proptype=proptype,  discretize=discretize)
     data <- rbind(data, t(res$data))
     labels <- c(labels, res$label)
+    print(x/n)
   }
   attributes(data)$names <- c(c(1:dim),"class")
   list("data"=data, "labels"=labels)
