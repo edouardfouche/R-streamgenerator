@@ -400,7 +400,6 @@ generate.multiple.rows <- function(n, dim, subspaces, margins, dependency, prop,
     res <- generate.row(dim=dim, subspaces=subspaces, margins=margins, dependency=dependency, prop=prop, proptype=proptype,  discretize=discretize)
     data <- rbind(data, t(res$data))
     labels <- c(labels, res$label)
-    print(x/n)
   }
   attributes(data)$names <- c(c(1:dim),"class")
   list("data"=data, "labels"=labels)
