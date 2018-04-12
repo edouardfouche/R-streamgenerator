@@ -33,6 +33,46 @@
 #' @importFrom stats runif
 generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.9,0.9), dependency = "Wall", prop=0.01, proptype="proportional", discretize=0) {
   # no sanity check, assumed to be done already 
+
+  ########## some helper functions ############
+  # Calculate eukklidian length of a vector
+  getEuklidLen <- function(vec) {
+    sqrt(sum(vec**2))
+  }
+  # Calculate vector projection for determing the distance of a point to a line
+  getVectorProjection <- function(start, end, point) {
+    diagonal <- end - start
+    result <- list(va1=numeric(0), va2=numeric(0))
+    result$va1 <- sum((point-start) * (diagonal/getEuklidLen(diagonal))) * (diagonal/getEuklidLen(diagonal))
+    result$va2 <- (point-start) - result$va1
+    result
+  } 
+  # Opposite point basically means mirrored aorund (0.5, 0.5)
+  createOppositePoint <- function(start) {
+    (start - 0.5) * (-1) + 0.5
+  }
+  # Create object containing the corners of a n-dimensional hypercube.
+  # If makePretty is FALSE, the value of expand.grid is returned.
+  # If makePretty is TRUE, a list of vectors representing the corners is returned.
+  getCorners <- function(n=2, makePretty=FALSE) {
+    # create all corners via expand.grid
+    arguments <- vector("list", n)  # arguments for expand.grid
+    for (i in 1:n) {
+      arguments[[i]] <- c(0,1)
+    }
+    corners <- expand.grid(arguments)
+    if (makePretty) {
+      result <- vector("list", nrow(corners))
+      for (i in 1:nrow(corners)) {
+        result[[i]] <- as.vector(corners[i,], mode="integer")
+      }
+      result
+    } else {
+      corners
+    }
+  }
+
+  #############################################
   isInHiddenSpace.Wall <- function(row, subspace) {all(row[subspaces[[subspace]]] > 1-margins[[subspace]])}
   isInHiddenSpace.Square <- function(row, subspace) {all(abs(row[subspaces[[subspace]]]-0.5) < margins[[subspace]]/2)}
   isInHiddenSpace.Donut <- function(row, subspace) {sqrt(sum((row[subspaces[[subspace]]]-0.5)**2)) < margins[[subspace]]/2 | sqrt(sum((row[subspaces[[subspace]]]-0.5)**2)) > 0.5}
@@ -47,46 +87,98 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
     d > 0.5 - margins[[subspace]]/2
   }
   isInHiddenSpace.Cross <- function(row, subspace, marginFactor = 1) {
-      getVectorProjectionOnDiagonal <- function(start, end, point) {
-        diagonal <- end - start
-        result <- list(va1=numeric(0), va2=numeric(0))
-        result$va1 <- sum((point-start) * (diagonal/sqrt(length(diagonal)))) * (diagonal/sqrt(length(diagonal)))
-        result$va2 <- (point-start) - result$va1
-        result
-      } 
-      getEuklidLen <- function(vec) {
-        sqrt(sum(vec**2))
+    createDiagList <- function(n=2) {
+      result <- c(starts=vector("list", (n+1)), ends=vector("list", (n+1)))
+      result$starts[[1]] <- rep(0, n)
+      result$ends[[1]] <- rep(1, n)
+      for (i in 2:(n+1)) {
+        result$starts[[i]] <- rep(0, n)
+        result$starts[[i]][[i-1]] <- 1
+        result$ends[[i]] <- createOppositePoint(result$starts[[i]])
       }
-      createOppositePoint <- function(start) {
-        # Opposite points basically means mirrored aorund (0.5, 0.5)
-        (start - 0.5) * (-1) + 0.5
-      }
-      createDiagList <- function(n=2) {
-        result <- c(starts=vector("list", (n+1)), ends=vector("list", (n+1)))
-        result$starts[[1]] <- rep(0, n)
-        result$ends[[1]] <- rep(1, n)
-        for (i in 2:(n+1)) {
-          result$starts[[i]] <- rep(0, n)
-          result$starts[[i]][[i-1]] <- 1
-          result$ends[[i]] <- createOppositePoint(result$starts[[i]])
-        }
-        result
-      }
-      point <- row[subspaces[[subspace]]]
-      if (marginFactor != 1) {point <- row}
-      n <- length(subspaces[[subspace]])
-      diagonals.list <- createDiagList(n)
-      # T.B.D.
-      diagonals.projections <- vector("list", (n+1))
-      diffs <- vector("list", (n+1))
-      for (i in 1:(n+1)) {
-        diagonals.projections[[i]] <- getVectorProjectionOnDiagonal(diagonals.list$starts[[i]],
-                                                                  diagonals.list$ends[[i]],
-                                                                  point);
-        diffs[i] <- getEuklidLen(diagonals.projections[[i]]$va2)
-      }
-      all(diffs > 0.5 - (margins[[subspace]]*marginFactor)/2)
+      result
+    }
+    point <- row[subspaces[[subspace]]]
+    if (marginFactor != 1) {point <- row}
+    n <- length(subspaces[[subspace]])
+    diagonals.list <- createDiagList(n)
+    # T.B.D.
+    diagonals.projections <- vector("list", (n+1))
+    diffs <- vector("list", (n+1))
+    for (i in 1:(n+1)) {
+      diagonals.projections[[i]] <- getVectorProjectionOnDiagonal(diagonals.list$starts[[i]],
+                                                                diagonals.list$ends[[i]],
+                                                                point);
+      diffs[i] <- getEuklidLen(diagonals.projections[[i]]$va2)
+    }
+    all(diffs > 0.5 - (margins[[subspace]]*marginFactor)/2)
   }
+  isInHiddenSpace.Hourglass <- function(row, subspace, marginFactor = 1) {
+    getHOPs <- function(start, n, oppDim) {
+      corners <- getCorners(n=n, makePretty=FALSE)
+      # create the "oppValue" for the desired dimension (oppDim)
+      oppValue <- createOppositePoint(start[[oppDim]])
+      # replace the value of the oppDim of all corners
+      for (i in 1:nrow(corners)) {
+        corners[i,][oppDim] <- oppValue
+      }
+      # remove duplicates
+      corners <- unique(corners)
+      # rename rows and transform to a list of vectors
+      rownames(corners) <- 1:nrow(corners)
+      result <- vector("list", nrow(corners))
+      for (i in 1:nrow(corners)) {
+        result[[i]] <- as.vector(corners[i,], mode="integer")
+      }
+      result
+    }
+    createHOPLines <- function(n=2) {
+      # The hourglass lines are the vectors between a corner of the
+      # hypercube and its ``HOPs'' (Hourglass Opposing Points). A HOP can be
+      # any other corner of the hypercube other than the starting point as long
+      # as the value of a pre-specified dimension is different (by only using
+      # the corners, the values in question can only be either 0 or 1).
+      #
+      # Example: Assume we have a 3D Hourglass. 
+      # We thus have vectors (x,y,z). For finding the HOPs of a corner, we
+      # want x to be the opposite. Thus, the point (0,0,0) would have the following HOPs:
+      # (1,0,0), (1,1,0), (1,0,1) and (1,1,1)
+      # 
+      # In general we have 2^(n-1) HOPs per corner in a n-dimensional hypercube.
+      corners <- getCorners(n=n, makePretty=TRUE)
+      result = vector("list", length(corners))
+      for (i in 1:length(corners)) {
+        result[[i]][["starts"]] <- corners[[i]]
+        result[[i]][["endList"]] <- getHOPs(result[[i]][["starts"]], n, 1)
+      }
+      result
+    }
+
+    if (marginFactor != 1) {
+        point <- row  # assume call from ensureOutlyingBehavior
+    } else {
+        point <- row[subspaces[[subspace]]]  # only look at the relevant subspace
+    }
+    n <- length(subspaces[[subspace]])
+    line.list <- createHOPLines(n)
+    numberOfCorners <- length(line.list)
+    numberOfHOPs <- length(line.list[[1]][["endList"]])
+    line.projections <- vector("list", length(line.list))
+    diffs <- vector("list", (numberOfCorners * numberOfHOPs))
+    k <- 1
+    for (i in 1:numberOfCorners) {
+        line.projections[[i]] <- vector("list", numberOfHOPs)
+      for (j in 1:numberOfHOPs) {
+        line.projections[[i]][[j]] <- getVectorProjection(line.list[[i]][["starts"]],
+                                                          line.list[[i]][["endList"]][[j]],
+                                                          point)
+        diffs[k] <- getEuklidLen(line.projections[[i]][[j]]$va2)
+        k <- k + 1
+      }
+    }
+    all(diffs > 0.5 - ((margins[[subspace]]*marginFactor)/2))
+  }
+
 
   ensureOutlyingBehavior.Wall <- function(row, subspace) row[subspaces[[subspace]]] + (1-row[subspaces[[subspace]]])*0.2
   ensureOutlyingBehavior.Square <- function(row, subspace) {
@@ -126,6 +218,22 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
     }
     p
   }
+  ensureOutlyingBehavior.Hourglass <- function(row, subspace){
+    d <- FALSE 
+    while(!d) {
+      p <- runif(length(row[subspaces[[subspace]]]))
+      d <- isInHiddenSpace(p, subspace, marginFactor = 0.8)
+    }
+    p
+  }
+  ensureOutlyingBehavior.HG <- function(row, subspace) {
+      d <- FALSE
+      while(!d) {
+          p <- runif(length(row[subspaces[[subspace]]]))
+          d <- isInHiddenSpace(p, subspace, marginFactor=0.8)
+      }
+      p
+  }
   
   
   outlierFlags <- rep(FALSE, length(subspaces))
@@ -147,6 +255,12 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
     } else if (dependency == "Cross") {
       isInHiddenSpace <- isInHiddenSpace.Cross
       ensureOutlyingBehavior <- ensureOutlyingBehavior.Cross 
+    } else if (dependency == "Hourglass") {
+      isInHiddenSpace <- isInHiddenSpace.Hourglass
+      ensureOutlyingBehavior <- ensureOutlyingBehavior.Hourglass
+    } else if (dependency == "HG") {
+      isInHiddenSpace <- isInHiddenSpace.HG
+      ensureOutlyingBehavior <- ensureOutlyingBehavior.HG
     } else {
       stop("Currently unsupported dependency type")
     }
@@ -196,7 +310,7 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
     # Create the true labels for each point
     # Do the process afterwards to minimize bug risks
     # i.e. make the labeling process independent from the generation 
-    # Here we need to take into account that the margin where modified by discretization. 
+    # Here we need to take into account that the margin was modified by discretization. 
     for(x in 1:length(subspaces)) {
       if(dependency == "Wall") {
         outlierFlags[x] <- all(r[subspaces[[x]]] > (1-margins[[x]])+(1/(discretize-1)))
@@ -211,6 +325,10 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
         outlierFlags[x] <- isInHiddenSpace.Linear(r,x)
       } else if (dependency == "Cross"){
         outlierFlags[x] <- isInHiddenSpace.Cross(r,x)
+      } else if (dependency == "Hourglass") {
+        outlierFlags[x] <- isInHiddenSpace.Hourglass(r,x)
+      } else if (dependency == "HG") {
+        outlierFlags[x] <- isInHiddenSpace.HG(r,x)
       } else {
         stop("Currently unsupported dependency type")
       }
@@ -231,6 +349,10 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
         outlierFlags[x] <- isInHiddenSpace.Linear(r,x)
       } else if (dependency == "Cross") {
         outlierFlags[x] <- isInHiddenSpace.Cross(r,x)
+      } else if (dependency == "Hourglass") {
+        outlierFlags[x] <- isInHiddenSpace.Hourglass(r,x)
+      } else if (dependency == "HG") {
+        outlierFlags[x] <- isInHiddenSpace.HG(r,x)
       } else {
         stop("Currently unsupported dependency type")
       }
@@ -278,6 +400,7 @@ generate.multiple.rows <- function(n, dim, subspaces, margins, dependency, prop,
     res <- generate.row(dim=dim, subspaces=subspaces, margins=margins, dependency=dependency, prop=prop, proptype=proptype,  discretize=discretize)
     data <- rbind(data, t(res$data))
     labels <- c(labels, res$label)
+    print(x/n)
   }
   attributes(data)$names <- c(c(1:dim),"class")
   list("data"=data, "labels"=labels)
