@@ -135,7 +135,7 @@ generate.dynamic.stream <- function(n=100, prop=0.01, proptype="proportional", s
   labels <- c()
   # Generate some data for each time step description 
   for(seq in 1:length(n)) {
-    if(verbose) print(paste("Step", seq, "of size", n[[seq]]))
+    if(verbose) print(paste("Step", seq, "of", length(n), ". Size", n[[seq]], "elements."))
     # Determine for the current state step the start and end margins values for each subspaces 
     subspaces_state <- list()
     currentmargins <- list()

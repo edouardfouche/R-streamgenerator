@@ -106,9 +106,9 @@ generate.row <- function(dim=10, subspaces=list(c(3,4), c(7,8)), margins=list(0.
     diagonals.projections <- vector("list", (n+1))
     diffs <- vector("list", (n+1))
     for (i in 1:(n+1)) {
-      diagonals.projections[[i]] <- getVectorProjectionOnDiagonal(diagonals.list$starts[[i]],
-                                                                diagonals.list$ends[[i]],
-                                                                point);
+      diagonals.projections[[i]] <- getVectorProjection(diagonals.list$starts[[i]],
+                                                        diagonals.list$ends[[i]],
+                                                        point);
       diffs[i] <- getEuklidLen(diagonals.projections[[i]]$va2)
     }
     all(diffs > 0.5 - (margins[[subspace]]*marginFactor)/2)
