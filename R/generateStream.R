@@ -141,7 +141,7 @@ generate.dynamic.stream <- function(n=100, prop=0.01, proptype="proportional", s
     currentmargins <- list()
     nextmargins <- list()
     
-    if(seq ==1) {
+    if(seq == 1) {
       # At start, all attributes have no dependencies (this means, margins=1 for all)
       # As a result, we set the start value ("currentmargins") to 0 for all of them 
       subspaces_state <- subspaceslist[[seq]]
@@ -176,13 +176,13 @@ generate.dynamic.stream <- function(n=100, prop=0.01, proptype="proportional", s
     for(x in 1:n[[seq]]) {
       # Update the current margins (transitioning uniformly between currentmargins and nextmargins)
       margins_state <- as.list(unlist(currentmargins) - (unlist(currentmargins)-unlist(nextmargins)) * (x-1)/n[[seq]])
-      if(i %%100 == 0 & verbose) {
+      if(i %% 100 == 0 & verbose) {
         print(c("subspaces_state:", paste(subspaces_state)), collapse=" ")
         #print(c("currentmargins:", paste(currentmargins)), collapse=" ")
         print(c("margins_state:", paste(margins_state)), collapse=" ")
         #print(c("nextmargins:", paste(nextmargins)), collapse=" ")
       }
-      i <- i+1
+      i <- i + 1
       
       # Generate a row 
       res <- generate.row(dim=dim, subspaces=subspaces_state, margins=margins_state, prop=prop, proptype=proptype, dependency=dependency, discretize=discretize)
