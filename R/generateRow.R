@@ -70,8 +70,15 @@ generate.row <- function(dim=10,
     sqrt(sum((x - y) ^ 2))
   }
 
-  # Calculate vector projection for determing the distance of a point to a line
   getVectorProjection <- function(start, end, point) {
+    # Calculate the vector projection of a point onto a line.
+    #
+    # Args:
+    #   start: The starting point of the line.
+    #   end: The ending point of the line.
+    #   point: The input point.
+    #  Returns:
+    #    The vector projection of the point to the line.
     diagonal <- end - start
     result <- list(va1=numeric(0), va2=numeric(0))
     result$va1 <- sum((point - start) *
@@ -80,15 +87,30 @@ generate.row <- function(dim=10,
     result$va2 <- (point - start) - result$va1
     result
   }
-  # Opposite point basically means mirrored aorund (0.5, 0.5)
-  createOppositePoint <- function(start) {
-    (start - 0.5) * (-1) + 0.5
+  createOppositePoint <- function(point) {
+    # A helper function to create "opposing" points inside a unit hypercube.
+    # "Opposing" in this case means mirrored around the 0.5-vector
+    #
+    # Args:
+    #   point: The point to be mirrored.
+    #
+    # Returns:
+    #   The mirrored / opposing point.
+    (point - 0.5) * (-1) + 0.5
   }
-  # Create object containing the corners of a n-dimensional hypercube.
-  # If makePretty is FALSE, the value of expand.grid is returned.
-  # If makePretty is TRUE, a list of vectors representing the corners is returned.
+
   getCorners <- function(n=2, makePretty=FALSE) {
-    # create all corners via expand.grid
+    # Create object containing the corner vectors of a n-dimensional hypercube.
+    #
+    # Args:
+    #   n: Number of dimensions.
+    #   makePretty: If makePretty is FALSE, the value of expand.grid is returned.
+    #               If makePretty is TRUE, a list of vectors representing the
+    #               corners is returned.
+    #
+    # Returns:
+    #   Either a list or the value of expand.grid containing the corner vectors
+    #   of the hypercube.
     arguments <- vector("list", n)  # arguments for expand.grid
     for (i in 1:n) {
       arguments[[i]] <- c(0,1)
@@ -97,7 +119,7 @@ generate.row <- function(dim=10,
     if (makePretty) {
       result <- vector("list", nrow(corners))
       for (i in 1:nrow(corners)) {
-        result[[i]] <- as.vector(corners[i,], mode="integer")
+        result[[i]] <- as.vector(corners[i, ], mode="integer")
       }
       result
     } else {
@@ -138,19 +160,30 @@ generate.row <- function(dim=10,
 
     ########## Actual functions ############
 
-  isInHiddenSpace.Wall <- function(row, subspace) {all(row[subspaces[[subspace]]] > 1-margins[[subspace]])}
-  isInHiddenSpace.Square <- function(row, subspace) {all(abs(row[subspaces[[subspace]]]-0.5) < margins[[subspace]]/2)}
-  isInHiddenSpace.Donut <- function(row, subspace) {sqrt(sum((row[subspaces[[subspace]]]-0.5)**2)) < margins[[subspace]]/2 | sqrt(sum((row[subspaces[[subspace]]]-0.5)**2)) > 0.5}
+  isInHiddenSpace.Wall <- function(row, subspace) {
+      all(row[subspaces[[subspace]]] > 1 - margins[[subspace]])
+  }
+
+  isInHiddenSpace.Square <- function(row, subspace) {
+      all(abs(row[subspaces[[subspace]]] - 0.5) < margins[[subspace]] / 2)
+  }
+
+  isInHiddenSpace.Donut <- function(row, subspace) {
+      sqrt(sum((row[subspaces[[subspace]]] - 0.5)**2)) < margins[[subspace]] /2 |
+      sqrt(sum((row[subspaces[[subspace]]] - 0.5)**2)) > 0.5
+  }
+  
   isInHiddenSpace.Linear <-function(row, subspace) {
     p <- row[subspaces[[subspace]]]
     b <- rep(1, length(p))
     # https://en.wikipedia.org/wiki/Vector_projection
-    a1 <- sum(p*(b/sqrt(length(b))))
-    va1 <- a1 * (b/sqrt(length(b)))
+    a1 <- sum(p * (b / sqrt(length(b))))
+    va1 <- a1 * ( b /sqrt(length(b)))
     vd <- p - va1
     d <- sqrt(sum(vd**2))
-    d > 0.5 - margins[[subspace]]/2
+    d > 0.5 - margins[[subspace]] / 2
   }
+
   isInHiddenSpace.Cross <- function(row, subspace, marginFactor=1) {
     createDiagList <- function(n=2) {
       result <- c(starts=vector("list", (n + 1)), ends=vector("list", (n + 1)))
@@ -163,6 +196,7 @@ generate.row <- function(dim=10,
       }
       result
     }
+
     point <- row[subspaces[[subspace]]]
     if (marginFactor != 1) {point <- row}
     n <- length(subspaces[[subspace]])
@@ -321,28 +355,35 @@ generate.row <- function(dim=10,
     diff > 0.5 - ((margins[[subspace]] * marginFactor) / 2)
   }
 
-  ensureOutlyingBehavior.Wall <- function(row, subspace) row[subspaces[[subspace]]] + (1-row[subspaces[[subspace]]])*0.2
+  ensureOutlyingBehavior.Wall <- function(row, subspace) {
+      row[subspaces[[subspace]]] + (1 - row[subspaces[[subspace]]]) * 0.2
+  }
 
   ensureOutlyingBehavior.Square <- function(row, subspace) {
     transformed_r <- row[subspaces[[subspace]]]-0.5
-    transformed_r <- transformed_r * ((margins[[subspace]]/2)-(margins[[subspace]]/2)*0.2) / (margins[[subspace]]/2)
+    transformed_r <- transformed_r * ((margins[[subspace]] / 2) -
+                                      (margins[[subspace]] / 2) * 0.2) /
+                                     (margins[[subspace]] / 2)
     transformed_r + 0.5
   }
 
   ensureOutlyingBehavior.Donut <- function(row, subspace) {
-    # Distinguish between "the point is inside the sphere" and "the point is in the corner"
-    if(sqrt(sum((row[subspaces[[subspace]]]-0.5)**2)) < margins[[subspace]]/2) { # If it is INSIDE the donut, push it towards the center
+    # Distinguish between points "inside" and "outside" of the sphere
+    # If it is INSIDE the donut, push it towards the center
+    if(sqrt(sum((row[subspaces[[subspace]]]-0.5)**2)) < margins[[subspace]]/2) { 
       absr <- abs(row[subspaces[[subspace]]]-0.5)
       res <- ((row[subspaces[[subspace]]]-0.5) * absr/(absr + absr*0.2)) + 0.5
     } else { # If it is OUTSIDE the Donut, push it towards the corners
       absr <- abs(row[subspaces[[subspace]]]-0.5)
-      res <- ((row[subspaces[[subspace]]]-0.5) * (absr + (0.5-absr)*0.3)/absr) + 0.5  # I've put 0.3 here because otherwise I find it too close really
+      # I've put 0.3 here because otherwise I find it too close really
+      res <- ((row[subspaces[[subspace]]]-0.5) *
+              (absr + (0.5-absr)*0.3)/absr) + 0.5  
     }
     res
   }
 
   ensureOutlyingBehavior.Linear <- function(row, subspace){
-    d <- 0 # Note: This way is a bit suboptimal but it avoids points at the really border at least.
+    d <- 0 # This way is a bit suboptimal but it avoids points at the border
     while(!(d > 0.5 - (margins[[subspace]] * 0.8) / 2)) {
       p <- runif(length(row[subspaces[[subspace]]]))
       b <- rep(1, length(p))
@@ -411,24 +452,33 @@ generate.row <- function(dim=10,
       stop("Currently unsupported dependency type1")
     }
 
-    # Do something only if the point is already in the hidden space OR the proportion of outliers is absolute.
+    # Do something only if the point is already in the hidden space OR the
+    # proportion of outliers is absolute.
     if(isInHiddenSpace(r, s) || (proptype=="absolute")) {
-      # Do something only if the point is not already an outlier in any other subspace that has non-empty intersection
-      # If this is the case, we might destroy his outlying behavior in the other subspace, which we want to avoid.
-      if(!any(lapply(subspaces[outlierFlags], function(y) length(intersect(subspaces[[s]],y))) > 0)) {
-        outlierFlags[s] <- sample(c(TRUE,FALSE),1,prob=c(prop,1-prop)) # Choose if it is an outlier in this subspace, with probability prob
-        if(!outlierFlags[s]) { # If we decide not to make an outlier out of it, regenerate it outside of the hidden region
+      # Do something only if the point is not already an outlier in any other
+      # subspace that has non-empty intersection
+      # If this is the case, we might destroy his outlying behavior in the
+      # other subspace, which we want to avoid.
+      if(!any(lapply(subspaces[outlierFlags],
+                     function(y) length(intersect(subspaces[[s]],y))) > 0)) {
+        # Choose if it is an outlier in this subspace, with probability prob
+        outlierFlags[s] <- sample(c(TRUE,FALSE),1,prob=c(prop,1-prop))
+        # If we decide not to make an outlier out of it, regenerate it outside
+        # of the hidden region
+        if(!outlierFlags[s]) { 
           while(isInHiddenSpace(r, s)) {
             r[subspaces[[s]]] <- runif(length(subspaces[[s]]))
           }
         } else {
-          # Just to make sure we don't go in an infinite loop in case the margin is too small.
+          # Just to make sure we don't go in an infinite loop in case the
+          # margin is too small.
           if(margins[[s]] >= 0.1) {
             while(!isInHiddenSpace(r, s)) {
               r[subspaces[[s]]] <- runif(length(subspaces[[s]]))
             }
             # If we decide to make an outlier out of it:
-            # Add a little margin (20% of the hidden space) to avoid possible ambiguities about the nature of the outlier
+            # Add a little margin (20% of the hidden space) to avoid possible
+            # ambiguities about the nature of the outlier
             r[subspaces[[s]]] <- ensureOutlyingBehavior(r,s)
           }
         }
@@ -456,17 +506,16 @@ generate.row <- function(dim=10,
     # Create the true labels for each point
     # Do the process afterwards to minimize bug risks
     # i.e. make the labeling process independent from the generation
-    # Here we need to take into account that the margin was modified by discretization.
+    # Here we need to take into account that the margin was modified by
+    # discretization.
     for(x in 1:length(subspaces)) {
       if(dependency == "Wall") {
         outlierFlags[x] <- all(r[subspaces[[x]]] > (1-margins[[x]])+(1/(discretize-1)))
       } else if(dependency == "Square") {
         outlierFlags[x] <- all(abs(r[subspaces[[x]]]-0.5) < (margins[[x]]-(1/(discretize-1)))/2)
-        #if(all(abs(r[subspaces[[x]]]-0.5) < (margins[[x]]-(margins[[x]] %% (1/(discretize-1))))/2)) {
-        #  print(cat("vec:", r[subspaces[[x]]], "-->", abs(r[subspaces[[x]]]-0.5), "smaller than", (margins[[x]]-(margins[[x]] %% (1/(discretize-1))))/2 , "with margin", margins[[x]], "discretize:", discretize))
-        #}
       } else if(dependency == "Donut") {
-        outlierFlags[x] <- (sqrt(sum((r[subspaces[[x]]]-0.5)**2)) < margins[[x]]/2 - sqrt(((1/(discretize-1))**2)*2)/2) | (sqrt(sum((r[subspaces[[x]]]-0.5)**2)) > 0.5+sqrt(((1/(discretize-1))**2)*2)/2)
+        outlierFlags[x] <- (sqrt(sum((r[subspaces[[x]]]-0.5)**2)) < margins[[x]]/2 - sqrt(((1/(discretize-1))**2)*2)/2) |
+                           (sqrt(sum((r[subspaces[[x]]]-0.5)**2)) > 0.5+sqrt(((1/(discretize-1))**2)*2)/2)
       } else if (dependency == "Linear"){
         outlierFlags[x] <- isInHiddenSpace.Linear(r,x)
       } else if (dependency == "Cross"){
@@ -490,7 +539,8 @@ generate.row <- function(dim=10,
       } else if(dependency == "Square") {
         outlierFlags[x] <- all(abs(r[subspaces[[x]]]-0.5) < margins[[x]]/2)
       } else if(dependency == "Donut") {
-        outlierFlags[x] <- sqrt(sum((r[subspaces[[x]]]-0.5)**2)) < margins[[x]]/2 | sqrt(sum((r[subspaces[[x]]]-0.5)**2)) > 0.5
+        outlierFlags[x] <- sqrt(sum((r[subspaces[[x]]]-0.5)**2)) < margins[[x]]/2 |
+                           sqrt(sum((r[subspaces[[x]]]-0.5)**2)) > 0.5
       } else if (dependency == "Linear") {
         outlierFlags[x] <- isInHiddenSpace.Linear(r,x)
       } else if (dependency == "Cross") {
@@ -513,15 +563,14 @@ generate.row <- function(dim=10,
   # of each subspaces separated by ;
   # In case the point is not an outlier in any space then just put a 0
   ifelse(any(outlierFlags),
-         description <- paste(sapply(subspaces[outlierFlags],function(x) paste(x,collapse=",")), collapse=";"), description <- "0")
+         description <- paste(sapply(subspaces[outlierFlags],
+                                     function(x) paste(x,collapse=",")),
+                              collapse=";"), description <- "0")
   class <- ifelse(description == "0", 0, 1) # derive the class label
   r <- c(r,class)
   # Row output
   list("data"=r, "label"=description)
 }
-
-
-
 
 
 #'  Helper function that generates multiple rows.
@@ -531,21 +580,30 @@ generate.row <- function(dim=10,
 #'
 #' @param n Number of rows to generate.
 #' @param dim Number of dimension of the vector generate.
-#' @param subspaces List of subspaces that contain a hidden space (i.e they show some dependency).
+#' @param subspaces List of subspaces that contain a hidden space (i.e they
+#'        show some dependency).
 #' @param margins List of margins that correspond to each subspace.
-#' @param prop Probability of a point belonging to the hidden space of a subspace to become an outlier.
-#' @param proptype Type of the proportion of outliers. Value "proportional": depend on the size of the empty space. Value "absolute": same absolute proportion per subspace.
+#' @param prop Probability of a point belonging to the hidden space of a
+#'        subspace to become an outlier.
+#' @param proptype Type of the proportion of outliers. Value "proportional":
+#'        depend on the size of the empty space. Value "absolute": same absolute
+#'        proportion per subspace.
 #'
 #' @author Edouard Fouché, \email{edouard.fouche@kit.edu}
 #'
 #' @md
-#' @return A list with 2 elements where \code{data} is a data.frame object containing the \code{n} vectors and \code{labels} containing \code{n} corresponding labels.
-generate.multiple.rows <- function(n, dim, subspaces, margins, dependency, prop, proptype, discretize) {
+#' @return A list with 2 elements where \code{data} is a data.frame object
+#'         containing the \code{n} vectors and \code{labels} containing \code{n}
+#'         corresponding labels.
+generate.multiple.rows <- function(n, dim, subspaces, margins, dependency,
+                                   prop, proptype, discretize) {
   # no sanity check, assumed to be done already
   data <- data.frame()
   labels <- c()
   for(x in 1:n) {
-    res <- generate.row(dim=dim, subspaces=subspaces, margins=margins, dependency=dependency, prop=prop, proptype=proptype,  discretize=discretize)
+    res <- generate.row(dim=dim, subspaces=subspaces, margins=margins,
+                        dependency=dependency, prop=prop, proptype=proptype,
+                        discretize=discretize)
     data <- rbind(data, t(res$data))
     labels <- c(labels, res$label)
   }
