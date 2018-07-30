@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #' Generate a row with statistical properties
 #'
 #' @param dim Number of dimensions of the generated vector
@@ -1018,4 +1017,3 @@ generate.multiple.rows <- function(n, dim, subspaces, margins, dependency, prop,
   attributes(data)$names <- c(c(1:dim),"class")
   list("data"=data, "labels"=labels)
 }
->>>>>>> e381a0d63efecdf222a826bff2dff0cd10458818
