@@ -183,12 +183,17 @@ generate.dynamic.stream <- function(n=100, prop=0.01, proptype="proportional",
     currentmargins <- list()  # The start margin-value of a step.
     nextmargins <- list()  # The end margin-value of a step.
     
-    if(seq == 1 & coldstart) {
-      # At start, all attributes have no dependencies (this means, margins=0 for
-      # all). As a result, we set the start value ("currentmargins") to 0 for
-      # all of them.
+    if(seq == 1) {
+      # If we want a coldstart, the starting margins values will be 0 for all
+      # subspaces. Otherwise, the provided value is used.
+      # TODO @apoth: Check, if this influences whether a drift is possible in
+      #              from the first to the second step.
       subspaces_state <- subspaceslist[[seq]]
-      currentmargins <- c(rep(0, length(subspaceslist[[seq]])))
+      if(coldstart) {
+        currentmargins <- c(rep(0, length(subspaceslist[[seq]])))
+      } else {
+        currentmargins <- marginslist[[seq]]
+      }
       nextmargins <- marginslist[[seq]]
     } else {
       # We shall consider subspace from the previous and the next state 

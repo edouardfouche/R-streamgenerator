@@ -258,7 +258,7 @@ generate.dynamic <- function(dim, subspaces, nstep=10, volatility=0.1,
     for(n in 1:(nstep - 1)) {
       indexes <- sample(1:length(subspaceslist[[n]]),
                         max(c(floor(length(subspaceslist[[n]])) *
-                              volatility,1)))
+                              volatility, 1)))
       nextsubspaces <- replace.subspaces(dim, subspaceslist[[n]], indexes,
                                          allowOverlap)
       nextmargins <- marginslist[[n]]
@@ -336,7 +336,7 @@ generate.stream.config <- function(dim=20, mindim=2, maxdim=4,
   res <- list("dim"=dim, "mindim"=mindim, "maxdim"=maxdim, "values"=values,
               "nstep"=nstep, "cycle"=cycle, "volatility"=volatility)
   if(nstep > 1) {  # nstep == 1 means we generate a static stream 
-    subspaces <- generate.subspaces(dim,mindim,maxdim,allowOverlap)
+    subspaces <- generate.subspaces(dim, mindim, maxdim, allowOverlap)
     meta <- generate.dynamic(dim=dim, subspaces=subspaces, nstep=nstep,
                              volatility=volatility, values=values, cycle=cycle)
     subspaceslist <- meta$subspaceslist
@@ -344,7 +344,7 @@ generate.stream.config <- function(dim=20, mindim=2, maxdim=4,
     res <- c(res, list("subspaceslist"=subspaceslist,
                        "marginslist"=marginslist))
   } else {
-    subspaces <- generate.subspaces(dim,mindim,maxdim,allowOverlap)
+    subspaces <- generate.subspaces(dim, mindim, maxdim, allowOverlap)
     margins <- generate.margins(subspaces, values=values)
     res <- c(res, list("subspaces"=subspaces, "margins"=margins))
   }
