@@ -54,7 +54,7 @@
 #' @export
 generate.static.stream <- function(n=1000, prop=0.01, proptype="proportional",
                                    stream.config=NULL) {
-  # Generate n point with dim dimensions where the list of subspaces are
+  # Generate n points with dim dimensions where the list of subspaces are
   # generated wall-like with the size of the wall taken from margins list as
   # 1-margin. In the hidden space, a proportion prop of the points is taken as
   # outliers. Suggestion: add a verbose mode 
@@ -97,11 +97,13 @@ generate.static.stream <- function(n=1000, prop=0.01, proptype="proportional",
 #' @param prop Proportion of outliers in the hidden space.
 #' @param proptype Type of the proportion of outliers. Value "proportional":
 #'        depend on the size of the empty space. Value "absolute": same absolute
-##        proportion per subspace.  
+#'        proportion per subspace.  
 #' @param stream.config A stream configuration object. Should have been
-##        generated with \code{nstep > 1}.
+#'        generated with \code{nstep > 1}.
 #' @param verbose If TRUE, then the state of the stream will be printed as
-##        output for every 100 points.
+#'        output for every 100 points.
+#' @param coldstart If TRUE (default) all subspaces will start with a margin
+#'        value of 0.
 #'
 #' @return A an object of class \code{stream}, which is a \code{List} of 5
 #'         elements.
@@ -144,7 +146,8 @@ generate.static.stream <- function(n=1000, prop=0.01, proptype="proportional",
 #' @md
 #' @export
 generate.dynamic.stream <- function(n=100, prop=0.01, proptype="proportional",
-                                    stream.config=NULL, verbose=FALSE) {
+                                    stream.config=NULL, verbose=FALSE,
+                                    coldstart=TRUE) {
   sanitycheck.generate(n=n, prop=prop, stream.config=stream.config,
                        verbose=verbose)
 
@@ -176,30 +179,31 @@ generate.dynamic.stream <- function(n=100, prop=0.01, proptype="proportional",
                             "elements."))
     # Determine for the current state step the start and end margins values for
     # each subspaces 
-    subspaces_state <- list()
-    currentmargins <- list()
-    nextmargins <- list()
+    subspaces_state <- list()  # Indicates if the subspace has a dependency.
+    currentmargins <- list()  # The start margin-value of a step.
+    nextmargins <- list()  # The end margin-value of a step.
     
-    if(seq == 1) {
-      # At start, all attributes have no dependencies (this means, margins=1 for
-      # all). As a result, we set the start value ("currentmargins") to 1 for
+    if(seq == 1 & coldstart) {
+      # At start, all attributes have no dependencies (this means, margins=0 for
+      # all). As a result, we set the start value ("currentmargins") to 0 for
       # all of them.
       subspaces_state <- subspaceslist[[seq]]
       currentmargins <- c(rep(0, length(subspaceslist[[seq]])))
       nextmargins <- marginslist[[seq]]
     } else {
       # We shall consider subspace from the previous and the next state 
-      subspaces_state <- unique(c(subspaceslist[[seq-1]], subspaceslist[[seq]]))
+      subspaces_state <- unique(c(subspaceslist[[seq - 1]],
+                                  subspaceslist[[seq]]))
       
       for(sub in 1:length(subspaces_state)) {
         # In the case a subspace is contained in the next step, its intended
         # value should be equal to its margins in the next step.
         # Otherwise, it should be 0.
         if(any(sapply(subspaceslist[[seq]],
-                      function(x) setequal(x,subspaces_state[[sub]])))) {
+                      function(x) setequal(x, subspaces_state[[sub]])))) {
           nextmargins <- c(nextmargins,
                            marginslist[[seq]][sapply(subspaceslist[[seq]],
-                               function(x) setequal(x,subspaces_state[[sub]]))])
+                              function(x) setequal(x, subspaces_state[[sub]]))])
         } else {
           nextmargins <- c(nextmargins, 0)
         }
@@ -207,10 +211,10 @@ generate.dynamic.stream <- function(n=100, prop=0.01, proptype="proportional",
         # In the case a subspace is contained in the current step, its start
         # value should be equal to its margins in the current step.
         # Otherwise, it should be 0.
-        if(any(sapply(subspaceslist[[seq-1]],
+        if(any(sapply(subspaceslist[[seq - 1]],
                       function(x) setequal(x,subspaces_state[[sub]])))) {
           currentmargins <- c(currentmargins,
-                             marginslist[[seq-1]][sapply(subspaceslist[[seq-1]],
+                         marginslist[[seq - 1]][sapply(subspaceslist[[seq - 1]],
                                function(x) setequal(x,subspaces_state[[sub]]))])
         } else {
           currentmargins <- c(currentmargins, 0)
@@ -222,6 +226,8 @@ generate.dynamic.stream <- function(n=100, prop=0.01, proptype="proportional",
     
     i <- 0
     for(x in 1:n[[seq]]) {
+      # TODO @apoth: Add new transition types here!
+      #
       # Update the current margins (transitioning uniformly between
       # currentmargins and nextmargins)
       margins_state <- as.list(unlist(currentmargins) -

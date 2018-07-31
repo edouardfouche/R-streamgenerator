@@ -610,7 +610,7 @@ generate.multiple.rows <- function(n, dim, subspaces, margins, dependency,
   attributes(data)$names <- c(c(1:dim),"class")
   list("data"=data, "labels"=labels)
 }
-=======
+
 #' Generate a row with statistical properties
 #'
 #' @param dim Number of dimensions of the generated vector
