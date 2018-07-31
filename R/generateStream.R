@@ -104,6 +104,8 @@ generate.static.stream <- function(n=1000, prop=0.01, proptype="proportional",
 #'        output for every 100 points.
 #' @param coldstart If TRUE (default) all subspaces will start with a margin
 #'        value of 0.
+#' @param transition A string indication what kind of transition should occur.
+#'        Can be "Linear" (default) or "Abrupt".
 #'
 #' @return A an object of class \code{stream}, which is a \code{List} of 5
 #'         elements.
@@ -147,7 +149,7 @@ generate.static.stream <- function(n=1000, prop=0.01, proptype="proportional",
 #' @export
 generate.dynamic.stream <- function(n=100, prop=0.01, proptype="proportional",
                                     stream.config=NULL, verbose=FALSE,
-                                    coldstart=TRUE) {
+                                    coldstart=TRUE, transition="Linear") {
   sanitycheck.generate(n=n, prop=prop, stream.config=stream.config,
                        verbose=verbose)
 
@@ -161,7 +163,7 @@ generate.dynamic.stream <- function(n=100, prop=0.01, proptype="proportional",
   }
 
   if(length(n) == 1) {
-    n <- rep(n,stream.config$nstep)
+    n <- rep(n, stream.config$nstep)
   } # else assume that n has the good size, was checked by the sanity check 
 
   dim <- stream.config$dim
@@ -235,9 +237,15 @@ generate.dynamic.stream <- function(n=100, prop=0.01, proptype="proportional",
       #
       # Update the current margins (transitioning uniformly between
       # currentmargins and nextmargins)
+      if(transition == "Linear") {
       margins_state <- as.list(unlist(currentmargins) -
                                (unlist(currentmargins) - 
                                 unlist(nextmargins)) * (x - 1) / n[[seq]])
+      } else if(transition == "Abrupt") {  # Leave the margins as they are
+        margins_state <- currentmargins
+      } else {
+        stop("Unknown transition type specified.")
+      }
       if(i %% 100 == 0 & verbose) {
         print(c("subspaces_state:", paste(subspaces_state)), collapse=" ")
         #print(c("currentmargins:", paste(currentmargins)), collapse=" ")
