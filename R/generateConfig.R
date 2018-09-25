@@ -45,7 +45,8 @@ generate.subspaces <- function(dim=20, mindim=2, maxdim=4, allowOverlap=FALSE) {
     }
   }
   if(maxdim < mindim) {
-    stop("The range of dimensions is too big for the number of dimensions")
+    stop("The minimal number of dimensions is too large for this total number
+         of dimensions.")
   }
   #print(maxdim)
 
