@@ -1,24 +1,31 @@
 #' Random generation of consecutive subspaces
 #'
-#' Random generation of partly overlapping consecutive subspaces with a minimum number of dimensions \code{mindim} 
-#' and a maximum number of dimensions \code{maxdim} from a total number of dimensions \code{dim}. 
+#' Random generation of partly overlapping consecutive subspaces with a minimum
+#' number of dimensions \code{mindim} 
+#' and a maximum number of dimensions \code{maxdim} from a total number of
+#' dimensions \code{dim}. 
 #'
 #' @param dim Total number of dimensions from which to generate the subspaces.
 #' @param mindim Minimum number of dimensions for a subspace.
 #' @param maxdim Maximum number of dimensions for a subspace.
-#' @param allowOverlap States whether overlap between subspaces are allowed. (might be a bit more complex if TRUE.). Note that full overlap and subset relation are never allowed.
+#' @param allowOverlap States whether overlap between subspaces are allowed 
+#'        (might be a bit more complex if TRUE). Note that full overlap and
+#'        subset relation are never allowed.
 #'
-#' @return A list of partly overlapping subspaces spanning over the \code{dim} dimensions 
+#' @return A list of partly overlapping subspaces spanning over the \code{dim}
+#'         dimensions 
 #'
 #' @details
-#' Generate at most \code{round((dim*0.75)/length(mindim:maxdim)/x)} subspaces of each size \code{x}
+#' Generate at most \code{round((dim*0.75)/length(mindim:maxdim)/x)} subspaces
+#' of each size \code{x}.
 #' For example, for \code{generate.subspaces(dim=100, maxdim=5, mindim=2)}: 
 #' * at most 4 5-dim subspaces 
 #' * at most 5 4-dim subspaces
 #' * at most 6 3-dim subspaces
 #' * at most 10 2-dim subspaces
-#' This is done so to make sure that roughly a least 25% of the dimensions are unaffected  
-#' This also make sure the dimensions are not dominated by high-dimensional subspaces
+#' This is done so to make sure that roughly a least 25% of the dimensions are
+#' unaffected. This also make sure the dimensions are not dominated by
+#' high-dimensional subspaces.
 #' TODO: Can this be improved?
 #'
 #' @examples
@@ -38,7 +45,8 @@ generate.subspaces <- function(dim=20, mindim=2, maxdim=4, allowOverlap=FALSE) {
     }
   }
   if(maxdim < mindim) {
-    stop("The range of dimensions is too big for the number of dimensions")
+    stop("The minimal number of dimensions is too large for this total number
+         of dimensions.")
   }
   #print(maxdim)
 
@@ -52,14 +60,19 @@ generate.subspaces <- function(dim=20, mindim=2, maxdim=4, allowOverlap=FALSE) {
           start <- sample(possiblestart,1)
           candidate <- start:(start+x-1)
           if(allowOverlap) {
-            # check that the candidate is not a subspace of an existing contrasted subspace
-            if(!any(sapply(subspaces, function(x) setequal(intersect(x, candidate),candidate)|setequal(intersect(x, candidate),x)))) {
+            # check that the candidate is not a subspace of an existing
+            # contrasted subspace
+            if(!any(sapply(subspaces,
+                           function(x) setequal(intersect(x, candidate),
+                                                candidate) |
+                           setequal(intersect(x, candidate),x)))) {
               #print(paste("candidate:", paste(candidate, collapse= ',')))
               subspaces <- c(subspaces, list(candidate))
               break
             }
           } else {
-            if(!any(sapply(subspaces, function(x) length(intersect(x, candidate)) > 0))) {
+            if(!any(sapply(subspaces,
+                           function(x) length(intersect(x, candidate)) > 0))) {
               #print(paste("candidate:", paste(candidate, collapse= ',')))
               subspaces <- c(subspaces, list(candidate))
               break
@@ -77,13 +90,17 @@ generate.subspaces <- function(dim=20, mindim=2, maxdim=4, allowOverlap=FALSE) {
 #' Replace a set of subspaces
 #' 
 #' Resample compatible subspaces to replace a set of subspaces.
-#' The new subspaces should not include or be included in another subspace from the original set. 
+#' The new subspaces should not include or be included in another subspace from
+#' the original set. 
 #' @param dim Total number of dimensions from which to generate the subspaces.
 #' @param subspaces A list of generated subspaces.
 #' @param indexes Positions of the subspaces to replace.
-#' @param allowOverlap States whether overlap between subspaces are allowed. (might be a bit more complex if TRUE.). Note that full overlap and subset relation are never allowed.
+#' @param allowOverlap States whether overlap between subspaces are allowed
+#'        (might be a bit more complex if TRUE). Note that full overlap and
+#'        subset relation are never allowed.
 #'
-#' @return The original set of subspaces, where the places at \code{indexes} were modified
+#' @return The original set of subspaces, where the places at \code{indexes}
+#'         were modified
 #'
 #' @examples 
 #' subspaces <- list(c(1,2,3), c(3,4,5), c(7,8), c(11,12), c(15,16))
@@ -94,25 +111,31 @@ generate.subspaces <- function(dim=20, mindim=2, maxdim=4, allowOverlap=FALSE) {
 #' @md
 #' @export
 replace.subspaces <- function(dim, subspaces, indexes, allowOverlap=FALSE) {
-  # TODO: What about overlappings? I am not sure if I cannot refrain from overlapping there, might be difficult to change subspaces otherwise
+  # TODO: What about overlappings? I am not sure if I cannot refrain from
+  # overlapping there, might be difficult to change subspaces otherwise
   # no sanity check, assumed to be done already 
   indexes <- indexes[sample(1:length(indexes), replace=FALSE)] # shuffle it
   for(index in indexes) {
     x <- length(subspaces[[index]])
     possiblestart <- 1:(dim-x)
-    possiblestart <- possiblestart[sample(1:length(possiblestart), replace=FALSE)] # shuffle it
+    possiblestart <- possiblestart[sample(1:length(possiblestart),
+                                          replace=FALSE)] # shuffle it
     for(start in possiblestart) {
       candidate <- start:(start+x-1)
       if(allowOverlap) {
-        # check that the candidate is not a subspace of an existing contrasted subspace
-        if(!any(sapply(subspaces, function(x) setequal(intersect(x, candidate),candidate)|setequal(intersect(x, candidate),x)))) {
+        # check that the candidate is not a subspace of an existing contrasted
+        # subspace
+        if(!any(sapply(subspaces,
+                       function(x) setequal(intersect(x, candidate),candidate) |
+                         setequal(intersect(x, candidate),x)))) {
           #print(paste("candidate:", paste(candidate, collapse= ',')))
           subspaces[[index]] <- candidate
           break
         }
       } else {
         # Still allow overlap with the replaced subspace, but not the others 
-        if(!any(sapply(subspaces[-index], function(x) length(intersect(x, candidate)) > 0))) {
+        if(!any(sapply(subspaces[-index],
+                       function(x) length(intersect(x, candidate)) > 0))) {
           #print(paste("candidate:", paste(candidate, collapse= ',')))
           subspaces[[index]] <- candidate
           break
@@ -134,21 +157,24 @@ replace.subspaces <- function(dim, subspaces, indexes, allowOverlap=FALSE) {
 #' @return A vector containing margins values for each subspaces
 #'
 #' @examples
-#' generate.margins(list(c(1,2,3), c(4,5), c(5,6)), values=c(0.1,0.2,0.3,0.4,0.5,0.8,0.7,0.9))
+#' generate.margins(list(c(1,2,3), c(4,5), c(5,6)),
+#'                       values=c(0.1,0.2,0.3,0.4,0.5,0.8,0.7,0.9))
 #'
 #' @author Edouard Fouché, \email{edouard.fouche@kit.edu}
 #'
 #' @md
 #' @export
-generate.margins <- function(subspaces, values=c(0.1,0.2,0.3,0.4,0.5,0.8,0.7,0.9)) {
-  sanitycheck.config(values=values) # assume subspaces are already OK. 
+generate.margins <- function(subspaces,
+                             values=c(0.1,0.2,0.3,0.4,0.5,0.8,0.7,0.9)) {
+  sanitycheck.config(values=values)  # assume subspaces are already OK. 
   # Generate  margins for a list of subspaces. 
   sample(values, length(subspaces), replace=TRUE)
 }
 
 #' Generate a list of margins
 #' 
-#' Generate iteratively a list of margins for the same set of subspaces with a particular volatility (not used currently)
+#' Generate iteratively a list of margins for the same set of subspaces with a
+#' particular volatility (not used currently)
 #' @param subspaces A list of generated subspaces.
 #' @param nstep Number of steps for which we generate new margin values.
 #' @param volatility Percentage of subspaces to replace at each step.
@@ -157,20 +183,27 @@ generate.margins <- function(subspaces, values=c(0.1,0.2,0.3,0.4,0.5,0.8,0.7,0.9
 #' @return A list containing lists of margins for each step 
 #'
 #' @examples
-#' generate.marginslist(list(c(1,2,3), c(4,5), c(5,6), c(7,8)), nstep=3, volatility=0.5)
+#' generate.marginslist(list(c(1,2,3), c(4,5), c(5,6), c(7,8)), nstep=3,
+#'                           volatility=0.5)
 #'
 #' @author Edouard Fouché, \email{edouard.fouche@kit.edu}
 #'
 #' @md
 #' @export
-generate.marginslist <- function(subspaces, nstep=10, volatility=0.1, values=c(0.1,0.2,0.3,0.4,0.5,0.8,0.7,0.9)) {
-  # Generate a marginslist for the same subspace list. Replace length(subspaces) * volatility margins at each step 
-  sanitycheck.config(subspaces=subspaces, nstep=nstep, volatility=volatility, values=values)
+generate.marginslist <- function(subspaces, nstep=10, volatility=0.1,
+                                 values=c(0.1,0.2,0.3,0.4,0.5,0.8,0.7,0.9)) {
+  # Generate a marginslist for the same subspace list. Replace
+  # length(subspaces) * volatility margins at each step 
+  sanitycheck.config(subspaces=subspaces, nstep=nstep, volatility=volatility,
+                     values=values)
   marginslist = list()
   for(n in 1:nstep) {
-    ifelse(n==1, margins <- rep(1, length(subspaces)),margins <- marginslist[[n-1]])
-    tochange <- sample(1:length(subspaces),max(1, as.integer(length(subspaces)*volatility)))
-    newval <- sapply(margins[tochange], function(x) sample(values[values != x], 1))
+    ifelse(n==1, margins <- rep(1, length(subspaces)),
+           margins <- marginslist[[n - 1]])
+    tochange <- sample(1:length(subspaces), 
+                       max(1, as.integer(length(subspaces) * volatility)))
+    newval <- sapply(margins[tochange],
+                     function(x) sample(values[values != x], 1))
     margins[tochange] <- newval 
     marginslist[[n]] <- margins
   }
@@ -179,42 +212,56 @@ generate.marginslist <- function(subspaces, nstep=10, volatility=0.1, values=c(0
 
 #' Generate iteratively a list of subspaces and margins (dynamic)
 #' 
-#' Generate iteratively a list of subspaces and margins based on the initial set of subspaces with a particular volatility
+#' Generate iteratively a list of subspaces and margins based on the initial set
+#' of subspaces with a particular volatility
 #'
 #' @param dim Total number of dimensions from which to generate the subspaces.
 #' @param subspaces A list of generated subspaces.
-#' @param nstep Number of steps for which we generate new subspaces and margin values.
+#' @param nstep Number of steps for which we generate new subspaces and margin
+#'        values.
 #' @param volatility Percentage of subspaces to replace at each step.
 #' @param values A vector of valid values for subspace margins.
 #' @param cycle If > 0 the dynamic contains a cycle of this size. 
-#' @param allowOverlap States whether overlap between subspaces are allowed. (might be a bit more complex if TRUE.). Note that full overlap and subset relation are never allowed.
+#' @param allowOverlap States whether overlap between subspaces are allowed
+#'        (might be a bit more complex if TRUE). Note that full overlap and
+#'        subset relation are never allowed.
 #'
 #' @return A list with two elements:
 #' - \code{marginlist} A list containing lists of margins for each steps
 #' - \code{subspacelist} A list containing lists of subspaces for each steps
 #' 
 #' @details
-#' For each step produce a new set of (possibly overlapping) subspaces where length(subspaces)*volatility subspaces were changed
-#' and assigned a margin taken from values 
+#' For each step produce a new set of (possibly overlapping) subspaces where
+#' length(subspaces)*volatility subspaces were changed and assigned a margin
+#' taken from values 
 #' 
 #' @examples
 #' subspaces <- list(c(1,2,3), c(3,4), c(5,6,7,8), c(7,8,9))
-#' meta <- generate.dynamic(dim=20, subspaces=subspaces, nstep=3, volatility=0.5)
-#' meta_cycle <- generate.dynamic(dim=20, subspaces=subspaces, nstep=10, volatility=0.5, cycle=3)
+#' meta <- generate.dynamic(dim=20, subspaces=subspaces, nstep=3,
+#'                          volatility=0.5)
+#' meta_cycle <- generate.dynamic(dim=20, subspaces=subspaces, nstep=10,
+#'                                volatility=0.5, cycle=3)
 #'
 #' @author Edouard Fouché, \email{edouard.fouche@kit.edu}
 #'
 #' @md
 #' @export
-generate.dynamic <- function(dim, subspaces, nstep=10, volatility=0.1, values=c(0.1,0.2,0.3,0.4,0.5,0.8,0.7,0.9), cycle=0, allowOverlap=FALSE) {
-  sanitycheck.config(dim=dim, subspaces=subspaces, nstep=nstep, volatility=volatility, values=values, cycle=cycle)
+generate.dynamic <- function(dim, subspaces, nstep=10, volatility=0.1,
+                             values=c(0.1,0.2,0.3,0.4,0.5,0.8,0.7,0.9), cycle=0,
+                             allowOverlap=FALSE) {
+  sanitycheck.config(dim=dim, subspaces=subspaces, nstep=nstep,
+                     volatility=volatility, values=values, cycle=cycle)
 
   if(cycle==0) {
-    marginslist <- list(as.list(sample(values, length(subspaces), replace=TRUE)))
+    marginslist <- list(as.list(sample(values, length(subspaces),
+                                       replace=TRUE)))
     subspaceslist <- list(subspaces)
-    for(n in 1:(nstep-1)) {
-      indexes <- sample(1:length(subspaceslist[[n]]), max(c(floor(length(subspaceslist[[n]]))*volatility,1)))
-      nextsubspaces <- replace.subspaces(dim, subspaceslist[[n]], indexes, allowOverlap)
+    for(n in 1:(nstep - 1)) {
+      indexes <- sample(1:length(subspaceslist[[n]]),
+                        max(c(floor(length(subspaceslist[[n]])) *
+                              volatility, 1)))
+      nextsubspaces <- replace.subspaces(dim, subspaceslist[[n]], indexes,
+                                         allowOverlap)
       nextmargins <- marginslist[[n]]
       nextmargins[indexes] <- sample(values, length(indexes), replace=TRUE)
       subspaceslist[[n+1]] <- nextsubspaces 
@@ -222,12 +269,20 @@ generate.dynamic <- function(dim, subspaces, nstep=10, volatility=0.1, values=c(
     }
     res <- list("marginslist" = marginslist, "subspaceslist" = subspaceslist)
   } else {
-    cycle <- generate.dynamic(dim=dim, subspaces=subspaces, nstep=cycle, volatility=volatility, values=values)
-    marginslist_cycle <- c(cycle$marginslist, rev(cycle$marginslist[2:(length(cycle$marginslist)-1)])) # close the marginslist_cycle
-    subspaceslist_cycle <- c(cycle$subspaceslist, rev(cycle$subspaceslist[2:(length(cycle$subspaceslist)-1)])) # close the subspaceslist_cycle
+    cycle <- generate.dynamic(dim=dim, subspaces=subspaces, nstep=cycle,
+                              volatility=volatility, values=values)
+    # close the marginslist_cycle
+    marginslist_cycle <- c(cycle$marginslist,
+                      rev(cycle$marginslist[2:(length(cycle$marginslist) - 1)]))
+    # close the subspaceslist_cycle
+    subspaceslist_cycle <- c(cycle$subspaceslist,
+                  rev(cycle$subspaceslist[2:(length(cycle$subspaceslist) - 1)]))
+
   
-    res <- list("marginslist" = rep(marginslist_cycle, ceiling(nstep/length(marginslist_cycle)))[1:nstep], 
-                "subspaceslist" = rep(subspaceslist_cycle, ceiling(nstep/length(marginslist_cycle)))[1:nstep])
+    res <- list("marginslist" = rep(marginslist_cycle, ceiling(nstep /
+                                           length(marginslist_cycle)))[1:nstep], 
+                "subspaceslist" = rep(subspaceslist_cycle, ceiling(nstep / 
+                                           length(marginslist_cycle)))[1:nstep])
   }
   res
 }
@@ -237,17 +292,29 @@ generate.dynamic <- function(dim, subspaces, nstep=10, volatility=0.1, values=c(
 #' Generate a valid stream configuration.
 #'
 #' @param dim Number of dimensions in the stream.
-#' @param mindim Minimum number of dimensions for each subspaces. Should be >= 2.
-#' @param maxdim Maximum number of dimensions for each subspaces. Should be >= mindim and <= dim/2.
+#' @param mindim Minimum number of dimensions for each subspaces. Should be
+#'        >= 2.
+#' @param maxdim Maximum number of dimensions for each subspaces. Should be
+#'        >= mindim and <= dim/2.
 #' @param values A vector of valid values for subspace margins.
-#' @param nstep Number of steps for which we generate new subspaces and margin values.
-#' @param dependency Type of dependencies available in the stream, currently either "Wall" or "Square" or "Donut" (in the future: "Mixed")
-#' @param decretize whether the output should be discrete or not. 0 means it is real. Any other number of discrete possible values. (10 is the minumum)
-#' @param cycle Number of iterations to use to create a cyclic streams. If 0, then the stream has no cycle.
-#' @param volatility Proportion of subspaces to change at any step. Should be > 0 and <= 1. 1 means that all subspaces and margins at changed a each step
-#' @param allowOverlap States whether overlap between subspaces are allowed. (might be a bit more complex if TRUE.). Note that full overlap and subset relation are never allowed.
+#' @param nstep Number of steps for which we generate new subspaces and margin
+#'        values.
+#' @param dependency Type of dependencies available in the stream, currently
+#'        either "Wall" or "Square" or "Donut" (in the future: "Mixed")
+#' @param decretize whether the output should be discrete or not. 0 means it is
+#'        real. Any other number of discrete possible values. (10 is the
+#'        minumum)
+#' @param cycle Number of iterations to use to create a cyclic streams. If 0,
+#'        then the stream has no cycle.
+#' @param volatility Proportion of subspaces to change at any step. Should be
+#'        > 0 and <= 1. 1 means that all subspaces and margins at changed a each
+#'        step.
+#' @param allowOverlap States whether overlap between subspaces are allowed.
+#'        (might be a bit more complex if TRUE.). Note that full overlap and
+#'        subset relation are never allowed.
 #'
-#' @return A stream.config object to be passed to a generate.dynamic.stream or generate.static.stream method 
+#' @return A stream.config object to be passed to a generate.dynamic.stream or
+#'         generate.static.stream method.
 #'
 #' @examples
 #' stream.config <- generate.stream.config(dim=50, nstep=10, volatility=0.5)
@@ -260,24 +327,33 @@ generate.dynamic <- function(dim, subspaces, nstep=10, volatility=0.1, values=c(
 #'
 #' @md
 #' @export
-generate.stream.config <- function(dim=20, mindim=2, maxdim=4, values=c(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9), nstep=10, dependency="Wall", discretize=0, cycle=0, volatility=0.1, allowOverlap=FALSE) {
-  sanitycheck.config(dim=dim, mindim=mindim, maxdim=maxdim, values=values, nstep=nstep, cycle=cycle, volatility=volatility)
+generate.stream.config <- function(dim=20, mindim=2, maxdim=4,
+                                  values=c(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9),
+                                  nstep=10, dependency="Wall", discretize=0,
+                                  cycle=0, volatility=0.1, allowOverlap=FALSE) {
+  sanitycheck.config(dim=dim, mindim=mindim, maxdim=maxdim, values=values,
+                     nstep=nstep, cycle=cycle, volatility=volatility)
 
-  res <- list("dim"=dim, "mindim"=mindim, "maxdim"=maxdim, "values"=values, "nstep"=nstep, "cycle"=cycle, "volatility"=volatility)
-  if(nstep > 1) { # nstep == 1 means we generate a static stream 
-    subspaces <- generate.subspaces(dim,mindim,maxdim,allowOverlap)
-    meta <- generate.dynamic(dim=dim, subspaces=subspaces, nstep=nstep, volatility=volatility, values=values, cycle=cycle)
+  res <- list("dim"=dim, "mindim"=mindim, "maxdim"=maxdim, "values"=values,
+              "nstep"=nstep, "cycle"=cycle, "volatility"=volatility)
+  if(nstep > 1) {  # nstep == 1 means we generate a static stream 
+    subspaces <- generate.subspaces(dim, mindim, maxdim, allowOverlap)
+    meta <- generate.dynamic(dim=dim, subspaces=subspaces, nstep=nstep,
+                             volatility=volatility, values=values, cycle=cycle)
     subspaceslist <- meta$subspaceslist
     marginslist <- meta$marginslist
-    res <- c(res, list("subspaceslist"=subspaceslist, "marginslist"=marginslist))
+    res <- c(res, list("subspaceslist"=subspaceslist,
+                       "marginslist"=marginslist))
   } else {
-    subspaces <- generate.subspaces(dim,mindim,maxdim,allowOverlap)
+    subspaces <- generate.subspaces(dim, mindim, maxdim, allowOverlap)
     margins <- generate.margins(subspaces, values=values)
     res <- c(res, list("subspaces"=subspaces, "margins"=margins))
   }
-  
-  res <-  c(res, list("dependency"=dependency)) # We don't support mixed dependencies yet, so we don't need a list 
-  res <-  c(res, list("discretize"=discretize)) # We don't support mixed discretization yet, so we don't need a list 
+
+  # We don't support mixed dependencies yet, so we don't need a list
+  res <-  c(res, list("dependency"=dependency))   
+  # We don't support mixed discretization yet, so we don't need a list 
+  res <-  c(res, list("discretize"=discretize)) 
   
   attr(res, "class") <- "stream.config"
   return(res)

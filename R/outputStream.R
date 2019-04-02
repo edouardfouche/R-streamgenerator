@@ -4,8 +4,8 @@
 #' in a <prefix>_data.txt file. Output the labels in a <prefix>_labels.txt file. Output an
 #' extensive description of the data, outliers and subspaces in a <prefix>_description.txt file
 #'
-#' @param stream An object of class stream.  
-#' @param prefix Prefix to give the output files 
+#' @param stream An object of class stream.
+#' @param prefix Prefix to give the output files
 #'
 #' @return Nothing
 #'
@@ -24,13 +24,13 @@ output.stream <- function(stream, prefix) {
 	write(stream$labels, paste(prefix, "labels.txt", sep="_"))
 
 	conn <-file(paste(prefix, "description.txt", sep="_"))
-	
+
 	sink(conn, append=TRUE)
 
-	cat(paste("Synthetic Data Stream", 
+	cat(paste("Synthetic Data Stream",
 			  "=====================\n", sep="\n"))
 
-	cat(paste("\nParameters", 
+	cat(paste("\nParameters",
 			  "----------\n\n", sep="\n"))
 
 	cat(paste(paste("Number of steps:\t", length(stream$n)),
@@ -42,11 +42,11 @@ output.stream <- function(stream, prefix) {
 			     paste("Possible margin values:\t", paste(stream$stream.config$values, collapse = ' ')),
 			     paste("Cycle length:\t\t", stream$stream.config$cycle),
 			     paste("Volatility:\t\t", stream$stream.config$volatility),
-			     paste("Dependency:\t\t", stream$stream.config$dependency), 
-			     paste("Overlap Allowed:\t\t", stream$stream.config$allowOverlap), 
+			     paste("Dependency:\t\t", stream$stream.config$dependency),
+			     paste("Overlap Allowed:\t\t", stream$stream.config$allowOverlap),
 			     paste("Discrete:\t\t", stream$stream.config$discretize), sep="\n"))
 
-	cat(paste("\n\nData", 
+	cat(paste("\n\nData",
 			  "----\n\n", sep="\n"))
 
 	hiddensubspaceoutliers <- stream$labels[stream$labels != "0"]
@@ -57,15 +57,15 @@ output.stream <- function(stream, prefix) {
 	cat(paste("\nNumber of outliers:\t", length(hiddensubspaceoutliers)),"\n\n")
 
 	contingency <- as.data.frame(table(stream$labels[stream$labels != "0"]))
-	
+
 	if(length(contingency) > 1) {
 	  attributes(contingency)$names <- c("subspaces", "count")
-	  
+
 	  cat("- Contingency Table\n\n")
-	  
+
 	  print(contingency)
 	}
-	
+
 
 	cat("\n- Patterns\n\n")
 
@@ -75,7 +75,7 @@ output.stream <- function(stream, prefix) {
 		cat(paste(indexes[x], hiddensubspaceoutliers[x], "\n", sep="\t\t"))
 	}
 
-	cat(paste("\nSubspace description", 
+	cat(paste("\nSubspace description",
 		      "--------------------\n\n", sep="\n"))
 
 	cat("- Notes\n\n")
@@ -104,9 +104,9 @@ output.stream <- function(stream, prefix) {
 		for(x in 1:length(stream$stream.config$subspaceslist)) {
 			summary[paste(stream$stream.config$subspaceslist[[x]]),paste(x,stream$n[x], sep=".")] <- paste(stream$stream.config$marginslist[[x]])
 		}
-		summary[is.na(summary)] <- 1
+		summary[is.na(summary)] <- 0
 		print(summary)
-		
+
 	}
 	sink()
 	close(conn)
